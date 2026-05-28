@@ -1,0 +1,1 @@
+// En este archivo realizaremos todas las comuniaciones entre el Frontend y el Backend de FatAPI

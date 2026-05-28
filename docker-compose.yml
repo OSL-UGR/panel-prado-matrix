@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # 1. BASE DE DATOS (PostgreSQL)
+  db:
+    image: postgres:15-alpine
+    container_name: prado_matrix_db
+    restart: always
+    environment:
+      POSTGRES_USER: prado_user
+      POSTGRES_PASSWORD: prado_password
+      POSTGRES_DB: prado_matrix
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  # 2. BACKEND (Python + FastAPI)
+  backend:
+    build: ./backend
+    container_name: prado_matrix_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://prado_user:prado_password@db:5432/prado_matrix
+    depends_on:
+      - db
+
+  # 3. FRONTEND (React + Vite)
+  frontend:
+    build: ./frontend
+    container_name: prado_matrix_frontend
+    restart: always
+    ports:
+      - "3000:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

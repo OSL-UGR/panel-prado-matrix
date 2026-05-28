@@ -1,0 +1,44 @@
+
+.env
+.env.*
+!.env.example
+ 
+# PYTHON / BACKEND
+
+# Archivos compilados (Byte-compiled)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales 
+venv/
+env/
+.venv/
+.env/
+
+# Herramientas de Python
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# NODE / FRONTEND (React)
+
+# Dependencias
+node_modules/
+frontend/node_modules/
+npm-debug.log*
+
+# Archivos de build 
+frontend/dist/
+frontend/build/
+
+# DOCKER & OS
+
+# Datos de la base de datos (PostgreSQL data)
+postgres_data/
+*.db
+
+# Archivos del sistema operativo (Mac/Linux)
+.DS_Store
+Thumbs.db
