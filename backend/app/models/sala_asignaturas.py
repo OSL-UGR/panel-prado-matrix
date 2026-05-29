@@ -2,10 +2,10 @@
 #
 # Este archivo es la representación en código de la tabla de sala_asingaturas
 
+import enum
 from sqlalchemy import Column, Integer, String, Enum
-from sqlalchemy.ext.declarative import declarative_base # Crea la base para todos los modelos ORM
+from app.core.database import Base # Importamos la Base
 
-Base = declarative_base()
 
 class TipoSala(enum.Enum):
     espacio = "espacio"

@@ -2,10 +2,9 @@
 #
 # Este archivo es la representación en código de la tabla de usuarios
 
-from sqlalchemy import Column, Integer
-from sqlalchemy.ext.declarative import declarative_base # Crea la base para todos los modelos ORM
+from sqlalchemy import Column, Integer,String
+from app.core.database import Base
 
-Base = declarative_base()
 
 class Usuario(Base):
 

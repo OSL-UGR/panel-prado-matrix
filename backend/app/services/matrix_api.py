@@ -6,9 +6,7 @@
 import httpx # Para peticiones GET, POST, PUT etc
 from sqlalchemy.orm import Session
 from app.models.sala_asignaturas import SalaAsignatura # Así podremos hacer db.query(SalaAsignatura)
-
-MATRIX_URL = "https://matrix.ugr.es/_matrix/client/v3"
-TOKEN = "token_administrador_matrix"
+from app.core.config import settings
 
 # Aync para que no se bloquee y así pueda antender otras peticiones mientras
 async def obtener_info_sala(db: Session, room_id: str): 
@@ -19,15 +17,19 @@ async def obtener_info_sala(db: Session, room_id: str):
         SalaAsignatura.id_matrix_sala == room_id
     ).first() # Devuelve el primer resultado o None si no existe
 
-    headers = {"Authorization": f"Bearer {TOKEN}"}
+    headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
 
     async with httpx.AsyncClient() as client:
         #  Devuelve una lista de los IDs de todas las salas a las que el usuario autenticado pertenece actualmente.
         # Documentación oficial en https://playground.matrix.org/#get-/_matrix/client/v3/rooms/-roomId-/joined_members
         respuesta = await client.get(
-            f"{MATRIX_URL}/rooms/{room_id}/joined_members", 
+            f"{settings.MATRIX_URL}/rooms/{room_id}/joined_members", 
             headers=headers
         )
+
+        if respuesta.status_code != 200: # Para gestionar si hubiese habido algún fallo
+
+            return {"ERROR":f"Fallo al conectar con Matrix: {respuesta.status_code}"}
 
         datos_matrix = respuesta.json()
 
