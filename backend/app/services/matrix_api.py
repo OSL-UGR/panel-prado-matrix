@@ -8,8 +8,7 @@ from sqlalchemy.orm import Session
 from app.models.sala_asignaturas import SalaAsignatura # Así podremos hacer db.query(SalaAsignatura)
 from app.core.config import settings
 
-# Aync para que no se bloquee y así pueda antender otras peticiones mientras
-async def obtener_info_sala(db: Session, room_id: str): 
+async def obtener_info_sala(db: Session, room_id: str): # Aync para que no se bloquee y así pueda antender otras peticiones mientras
 
     # Equivalente a "SELECT * FROM SalaAsignatura WHERE id_matrix_sala = room_id"
     sala = db.query(SalaAsignatura).filter(
@@ -37,7 +36,7 @@ async def obtener_info_sala(db: Session, room_id: str):
 
         "datos_sala": {
             "alias": sala.alias_principal if sala else "Desconocido", # Devolvemos Descononico si no lo hubiese encontrado
-            "tipo": sala.tipo if sala else "Desconocido"
+            "tipo": sala.tipo.value if sala else "Desconocido"
         },
         "miembros_matrix": datos_matrix.get("joined", {}) # Devolvemos el listado de los miembros obtenidos a través de la API
     }

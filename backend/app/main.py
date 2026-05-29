@@ -1,3 +1,32 @@
 # <- ¿De qué se encarga este archivo? -> 
 #
 # Archivo que arranca FastAPI, inicializa el servidor y donde se agrupan todas las rutas de la API
+
+from fastapi import FastAPI # Crea la aplicación web
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.database import engine, Base # Para la conexión con la bd
+from app.api.routes import router # Para los endpoints que hemos definido en router
+from app.core.config import settings
+
+# Importamos los modelos para la hora de crear las tablas (parece que no hace nada pero es totalmente necesario)
+from app.models.sala_asignaturas import SalaAsignatura
+from app.models.usuarios import Usuario
+
+# Lee todos los modelos registrados en "Base" y crea todas las tablas
+Base.metadata.create_all(bind=engine) 
+
+# Inicializamos la aplicación
+app = FastAPI(title="Panel PRADO-Matrix") 
+
+# Configuración del middleware de nuestra app
+# TODO: esto en la fase de despliquege habrá que cambiarlo
+app.add_middleware(
+    CORSMiddleware, # Para que React (Front) se pueda comunicar con FastAPI (Backend)
+    allow_origins=[settings.FRONTEND_URL],  # Ponemos la url de nuestro Front
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Permitimos las operaciones necesarias
+    allow_headers=["Content-Type", "Authorization"],
+)
+
+# Incluimos el router a nuestra app
+app.include_router(router, prefix="/api")
