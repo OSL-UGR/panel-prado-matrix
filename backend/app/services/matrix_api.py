@@ -4,7 +4,6 @@
 # Ej: lanzar petición POST para expulsar o banear a un alumno
 
 import httpx # Para peticiones GET, POST, PUT etc
-import urllib.parse # Para codificr l id
 from sqlalchemy.orm import Session
 from app.models.sala_asignaturas import SalaAsignatura # Así podremos hacer db.query(SalaAsignatura)
 from app.core.config import settings
