@@ -1,1 +1,55 @@
-@import "tailwindcss";
+@import "tailwindcss"; /*Cargamos el estilo base, los componentes y las utilidades*/
+
+/* Definimos un tema personalizado general para nuestra app */
+@theme {
+  --color-fondo: #050505; /* Color fondo (negro)*/
+  --color-paneles: #1A1A1A; /* Color para paneles (nego claro)*/
+  --color-bordes: #A3A3A3; /*Color para bordes (gris)*/
+  --color-texto: #EAEAEA; /* Color para texto (gris-blanco)*/
+  --color-azul-turquesa: #00FFCC; /* Color para acentuar cosas (azul turquesa)*/
+  --color-avisos: #FF8C00; /* Color para advertencias (naranja)*/
+  --color-errores: #FF0000; /* Color para errores (rojo)*/
+
+    /* Forzamos todos los tipos de letra a lo mismo*/
+  --font-fuente: "Share Tech Mono", monospace, "Courier New";
+  /* Para que aparezca una sombra desplazado abajo derecha de la caja principal*/
+  --shadow-gris: 4px 4px 0px 0px var(--color-bordes); /* En gris */
+  --shafow-azul: 4px 4px 0px 0px var(--color-azul-turquesa:); /* EN turquesa */
+}
+
+/* Define las reglas que afectan a la aplicación*/
+@layer base {
+  body{
+
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    font-family: var(--font-fuente);
+    -webkit-font-smoothing: antialiased; /* Hace que se vea más suave la fuente*/
+    
+    /* Efecto de pantalla CRT antigua */
+    background-image: linear-gradient(
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px
+    );
+    background-size: 100% 4px;
+  }
+
+  * {
+    border-radius: 0 !important; /* Prohibe todos los bordes redondeados en la app*/
+  }
+
+  /* Barra de scroll personalizada */
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    background-color: var(--color-fondo);
+    border-left: 1px solid var(--color-bordes);
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-bordes);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-azul-turquesa);
+  }
+}
