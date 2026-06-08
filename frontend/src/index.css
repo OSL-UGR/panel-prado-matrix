@@ -14,7 +14,7 @@
   --font-fuente: "Share Tech Mono", monospace, "Courier New";
   /* Para que aparezca una sombra desplazado abajo derecha de la caja principal*/
   --shadow-gris: 4px 4px 0px 0px var(--color-bordes); /* En gris */
-  --shafow-azul: 4px 4px 0px 0px var(--color-azul-turquesa:); /* EN turquesa */
+  --shadow-azul: 4px 4px 0px 0px var(--color-azul-turquesa:); /* EN turquesa */
 }
 
 /* Define las reglas que afectan a la aplicación*/
@@ -53,3 +53,4 @@
     background-color: var(--color-azul-turquesa);
   }
 }
+
