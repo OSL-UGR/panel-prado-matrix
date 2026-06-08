@@ -55,8 +55,8 @@ export default function Layout() {
                 className={`
                   p-3 border transition-all duration-200
                   ${isActive 
-                    ? 'border-azul-turquesa text-fondo bg-azul-turquesa shadow-azul font-bold translate-x-1' 
-                    : 'border-bordes text-texto hover:border-texto hover:bg-bordes hover:shadow-gris'
+                    ? 'border-paneles text-fondo bg-azul-turquesa  shadow-azul font-bold translate-x-1' 
+                    : 'border-bordes text-texto hover:border-texto hover:bg-bordes '
                   }
                 `}
               >

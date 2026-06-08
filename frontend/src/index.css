@@ -14,7 +14,7 @@
   --font-fuente: "Share Tech Mono", monospace, "Courier New";
   /* Para que aparezca una sombra desplazado abajo derecha de la caja principal*/
   --shadow-gris: 4px 4px 0px 0px var(--color-bordes); /* En gris */
-  --shadow-azul: 4px 4px 0px 0px var(--color-azul-turquesa:); /* EN turquesa */
+  --shadow-azul: 4px 4px 0px 0px var(--color-azul-turquesa); /* EN turquesa */
 }
 
 /* Define las reglas que afectan a la aplicación*/
@@ -35,7 +35,7 @@
   }
 
   * {
-    border-radius: 0 !important; /* Prohibe todos los bordes redondeados en la app*/
+    border-radius: 0 !important; /* Quita todos los bordes redondeados en la app*/
   }
 
   /* Barra de scroll personalizada */
