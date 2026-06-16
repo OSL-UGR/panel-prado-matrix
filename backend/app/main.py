@@ -30,3 +30,5 @@ app.add_middleware(
 
 # Incluimos el router a nuestra app
 app.include_router(router, prefix="/api")
+
+
