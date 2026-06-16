@@ -4,11 +4,12 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 export default function Layout() {
   const location = useLocation(); /* Nos indica donde estamos ahora*/
 
-  // Definimos nuestras 5 pantallas 
+  // Definimos nuestras pantallas 
   const paginasNavegables = [
     { path: '/', label: 'INICIO' },
     { path: '/salas', label: 'GESTOR DE SALAS' },
     { path: '/avisos', label: 'PROG. DE AVISOS' },
+    { path: '/horarios', label: 'CRONO. DE SALAS' },
     { path: '/sanciones', label: 'SANCIONES' },
     { path: '/logs', label: 'REGISTRO DE LOGS' },
   ];
