@@ -21,3 +21,39 @@ async def obtener_alumnos_prado_service(asignatura_id : str):
         "mensaje": f"No se ha encontrado la asignatura con ID {asignatura_id} en PRADO",
     }
 
+async def obtener_total_asignaturas_usuario(user_id : str):
+    """
+   Devuelve el número total de asignaturas a las que pertenece un usuario dado su id de matrix.
+    """
+
+    total = 0
+    for asignatura in CATALOGO["asignaturas"]:
+
+        usuarios = asignatura["usuarios_matriculados"]
+
+        for usuario in usuarios: 
+            if usuario["matrix_id"] == user_id:
+                total = total+1
+                break
+    return total
+
+async def obtener_total_alumnos_usuario(user_id : str):
+    """
+    Devuelve el número total de alumnos únicos que tiene un profesor en todas sus asignaturas.
+    """
+    alumnos_unicos = set()
+    
+    for asignatura in CATALOGO["asignaturas"]:
+        usuarios = asignatura.get("usuarios_matriculados", [])
+        
+        # Comprobamos si el profesor pertenece a esta asignatura
+        es_su_asignatura = any(u.get("matrix_id") == user_id for u in usuarios)
+        
+        if es_su_asignatura:
+            for usuario in usuarios:
+                # Contamos a todos menos al propio profesor
+                if usuario.get("matrix_id") != user_id:
+                    alumnos_unicos.add(usuario.get("matrix_id"))
+                    
+    return len(alumnos_unicos)
+
