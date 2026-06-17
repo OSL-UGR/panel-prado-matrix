@@ -47,27 +47,25 @@ async def obtener_perfil_usuario(user_id:str):
     headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
 
     async with httpx.AsyncClient() as client:
-        respuesta = await client.get(
-            f"{settings.MATRIX_URL}/profile/{user_id}",
+
+        # 1 Primer endpoint para el nombre 
+        res_nombre = await client.get(
+
+            f"{settings.MATRIX_URL}/profile/{user_id}/displayname", 
             headers=headers
         )
 
-        if respuesta.status_code != 200:
-            return {"error": f"Fallo al obtener el perfil de Matrix: {respuesta.status_code}"}
+        datos_nombre = res_nombre.json()
 
-        datos_perfil = respuesta.json()
+        # Hay que comprobar que el resultado sea correcto y el campo se haya escrito correctamente
+        if res_nombre.status_code == 200 and "displayname" in datos_nombre:
 
-    # Transformamos mxc:// a https:// para que React pueda leer la imagen
-    avatar_url_cruda = datos_perfil.get("avatar_url")
-    avatar_http = None
+            nombre = datos_nombre["displayname"]
+        else:
 
-    if avatar_url_cruda and avatar_url_cruda.startswith("mxc://"):
-        mxc_path = avatar_url_cruda.replace("mxc://", "")
-        base_url = settings.MATRIX_URL.split("/_matrix")[0]
-        avatar_http = f"{base_url}/_matrix/media/r0/download/{mxc_path}"
+            nombre = "Desconocido"
 
     return {
-        "nombre": datos_perfil.get("displayname", "Desconocido"),
+        "nombre": nombre,
         "matrix_id": user_id,
-        "avatar_url": avatar_http
     }
