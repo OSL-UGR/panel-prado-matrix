@@ -43,3 +43,20 @@ export const fetchPerfilUsuario = async () => {
         throw error;
     }
 };
+
+/* Función para obtener las estadísticas de la pestaña de inicio */
+
+export const fetchEstadisticasInicio = async () => {
+
+    try{
+        const response = await fetch(`${API_BASE_URL}/inicio/stats`);
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.status}`);
+        }
+        return await response.json(); 
+    }catch (error){
+
+        console.error("Error al obtener las estadísticas de la pestaña de inicio.")
+        throw error;
+    }
+};
