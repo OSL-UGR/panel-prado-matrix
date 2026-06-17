@@ -8,8 +8,12 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db # Obteenemos la base de datos
 
 # Importamos los dos servicios
-from app.services.matrix_api import obtener_info_sala
+from app.services.matrix_api import obtener_info_sala, obtener_perfil_usuario
 from app.services.prado_api import obtener_alumnos_prado_service
+
+# Importamos el usuario activo de nuestro Mock de Prado
+# TODO: esto habrá que actualizarlo con las variables de sesión de prado
+from app.mocks.prado_db import PROFESOR
 
 router = APIRouter() # Lo que hace es crear un grupo de rutas. En el main tendremos que incluirlo "app.include_router(router)"
 
@@ -23,6 +27,11 @@ async def endpoint_info_sala(room_id: str, db: Session = Depends(get_db)):
     resultado = await obtener_info_sala(db, room_id)
     return resultado
 
+@router.get("/usuario/perfil")
+async def endpoint_perfil_usuario():
+    # Le pasamos a la función tu ID de Matrix directamente
+    resultado = await obtener_perfil_usuario(PROFESOR["matrix_id"])
+    return resultado
 
 # ==========================================
 # RUTAS DE PRADO (SIMULADOR)

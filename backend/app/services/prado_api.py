@@ -6,7 +6,7 @@
 
 from app.mocks.prado_db import CATALOGO
 
-async def obtener_alumnos_prado_services(asignatura_id : str):
+async def obtener_alumnos_prado_service(asignatura_id : str):
 
     """
     Devuelve la información de una asignatura junto a sus usuarios (profesores y alumnos) dada la id de esta.

@@ -4,8 +4,7 @@
 
 // Lee la variable de entorno que Vite usa para saber dónde está el backend.
 // Si no existe, asume localhost:8000
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
-
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000/api";
 /**
  * Función para obtener la información de una sala en Matrix tras la petición en el backend
  */
@@ -25,6 +24,22 @@ export const fetchSalaInfo = async (roomId) => {
     }catch (error){
         
         console.error("Error al obtener la info de la sala:", error);
+        throw error;
+    }
+};
+
+/**
+ * Función para obtener el perfil real del profesor de la sesión activa
+ */
+export const fetchPerfilUsuario = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/usuario/perfil`);
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.status}`);
+        }
+        return await response.json(); 
+    } catch (error) {
+        console.error("Error al obtener el perfil de usuario:", error);
         throw error;
     }
 };

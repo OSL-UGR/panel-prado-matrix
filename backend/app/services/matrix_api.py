@@ -42,4 +42,32 @@ async def obtener_info_sala(db: Session, room_id: str): # Aync para que no se bl
     }
 
 
-    
+async def obtener_perfil_usuario(user_id:str):
+
+    headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
+
+    async with httpx.AsyncClient() as client:
+        respuesta = await client.get(
+            f"{settings.MATRIX_URL}/profile/{user_id}",
+            headers=headers
+        )
+
+        if respuesta.status_code != 200:
+            return {"error": f"Fallo al obtener el perfil de Matrix: {respuesta.status_code}"}
+
+        datos_perfil = respuesta.json()
+
+    # Transformamos mxc:// a https:// para que React pueda leer la imagen
+    avatar_url_cruda = datos_perfil.get("avatar_url")
+    avatar_http = None
+
+    if avatar_url_cruda and avatar_url_cruda.startswith("mxc://"):
+        mxc_path = avatar_url_cruda.replace("mxc://", "")
+        base_url = settings.MATRIX_URL.split("/_matrix")[0]
+        avatar_http = f"{base_url}/_matrix/media/r0/download/{mxc_path}"
+
+    return {
+        "nombre": datos_perfil.get("displayname", "Desconocido"),
+        "matrix_id": user_id,
+        "avatar_url": avatar_http
+    }

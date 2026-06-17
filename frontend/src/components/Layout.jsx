@@ -1,8 +1,31 @@
 /* No recarga la página navegamos dentro del router de react*/
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-
+import { fetchPerfilUsuario } from '../services/api';
 export default function Layout() {
   const location = useLocation(); /* Nos indica donde estamos ahora*/
+
+  // Estado inicial del perfil mientras carga
+  const [perfil, setPerfil] = useState({
+    nombre: 'CONECTANDO...',
+    matrix_id: 'Sincronizando...',
+    avatar_url: null
+  });
+
+  // Petición a la API al montar el componente
+  useEffect(() => {
+    const cargarPerfil = async () => {
+      try {
+        const datos = await fetchPerfilUsuario();
+        if (!datos.error) {
+          setPerfil(datos);
+        }
+      } catch (error) {
+        console.error("Error cargando perfil:", error);
+      }
+    };
+    cargarPerfil();
+  }, []);
 
   // Definimos nuestras pantallas 
   const paginasNavegables = [
@@ -26,14 +49,18 @@ export default function Layout() {
           </h1>
         </div>
 
-        {/* Bloque de perfil TODO: quitar valores hardcodeado*/}
+        {/* Bloque de perfil */}
         <div className="flex items-center gap-4 border border-bordes p-2 bg-fondo shadow-gris">
           <div className="w-10 h-10 border border-bordes bg-paneles flex items-center justify-center">
-            IMG
+            {perfil.avatar_url ? (
+              <img src={perfil.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs">IMG</span>
+            )}
           </div>
           <div className="text-right">
-            <div className="font-bold text-azul-turquesa ">e.samuelcantero</div>
-            <div className="text-xs text-bordes">@e.samuelcantero:matrix.ugr.es</div>
+            <div className="font-bold text-azul-turquesa ">{perfil.nombre}</div>
+            <div className="text-xs text-bordes lowercase">{perfil.matrix_id}</div>
           </div>
         </div>
       </header>
