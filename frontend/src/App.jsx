@@ -1,9 +1,9 @@
 // Enrutador de la aplicación
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';  //Para envolver a todas las páginas y mantener el estilo común
+import Inicio from './pages/Inicio';
 
 // TODO: Pantallas provisionales para comprobar que la navegación funciona
-const Inicio = () => <div className="border border-bordes p-6 bg-paneles shadow-gris"><h2 className="text-azul-turquesa text-xl mb-4">MÓDULO: INICIO</h2><p>Estadísticas del sistema irán aquí...</p></div>;
 const GestorSalas = () => <div className="border border-bordes p-6 bg-paneles shadow-gris"><h2 className="text-azul-turquesa text-xl mb-4">MÓDULO: GESTOR DE SALAS</h2><p>Árbol de navegación y tablas irán aquí...</p></div>;
 const ProgramadorAvisos = () => <div className='border border-bordes p-6 bg-paneles shadow-gris'><h2 className="text-azul-turquesa text-xl mb-4">MÓDULO: PROGRAMADOR DE AVISOS</h2><p>El formulario para programar avisos en salas irá aquí...</p></div>
 const CronogramaSalas = () => <div className='border border-bordes p-6 bg-paneles shadow-gris'><h2 className='text-azul-turquesa text-xl mb-4'>MÓDULO: CRONOGRAMA DE SALAS</h2><p>El cronograma para gestionar los horarios de uso de las salas irán aquí...</p></div>
@@ -15,7 +15,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}> 
-          <Route index element={<Inicio />} />
+          <Route index element={<Inicio />} />          
           <Route path="salas" element={<GestorSalas />} />
           <Route path="avisos" element={<ProgramadorAvisos/>} />
           <Route path="horarios" element={<CronogramaSalas/>} />
