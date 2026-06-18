@@ -46,13 +46,13 @@ async def get_alumnos(asignatura_id: str):
     return await obtener_alumnos_prado_service(asignatura_id)
 
 @router.get("/prado/usuarios/{user_id}/asignaturas")
-async def get_asignaturas(user_id: str):
+async def get_asignaturas(user_id: str, db: Session = Depends(get_db)):
 
     # TODO: cambiar el id hardcodeado por el id del usuario de la sesión de Prado
     if user_id == "me":
         user_id = PROFESOR["matrix_id"]
 
-    return await obtener_asignaturas_usuario(user_id)
+    return await obtener_asignaturas_usuario(user_id,db)
 
 # ==========================================
 # RUTAS DE LA PESTAÑA DE INICIO PERSONALIZADAS

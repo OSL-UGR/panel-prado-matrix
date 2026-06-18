@@ -62,15 +62,16 @@ export const fetchEstadisticasInicio = async () => {
 
 /* PRADO: Funcion para obtener el listado de asignaturas a las que pertenece un usario*/
 
-export const fetchAsignaturasPrado = async (userId = "@profesor:matrix.ugr.es") => {
+export const fetchAsignaturasPrado = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/prado/usuarios/${encodeURIComponent(userId)}/asignaturas`);
+        // Usamos el "me" para referirnos al usuario de la sesión
+        const response = await fetch(`${API_BASE_URL}/prado/usuarios/me/asignaturas`);        
         if (!response.ok) {
             throw new Error(`Error en la petición: ${response.status}`);
         }
         return await response.json();
     } catch (error) {
-        
+
         console.error("Error al obtener las asignaturas de PRADO:", error);
         throw error;
     }

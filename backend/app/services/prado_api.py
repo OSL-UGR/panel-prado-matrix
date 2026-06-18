@@ -5,6 +5,8 @@
 
 
 from app.mocks.prado_db import CATALOGO
+from app.models.sala_asignaturas import SalaAsignatura
+from sqlalchemy.orm import Session
 
 async def obtener_alumnos_prado_service(asignatura_id : str):
 
@@ -57,9 +59,9 @@ async def obtener_total_alumnos_usuario(user_id : str):
                     
     return len(alumnos_unicos)
 
-async def obtener_asignaturas_usuario(user_id: str): 
+async def obtener_asignaturas_usuario(user_id: str, db: Session):
     """
-    Obtiene el listado de asignaturas a las que pertenece un usuario
+    Obtiene el listado de asignaturas a las que pertenece un usuario y revisa si estan sincronizadas o no con Matrix
     """
 
     asignaturas = []
@@ -71,7 +73,20 @@ async def obtener_asignaturas_usuario(user_id: str):
         for usuario in usuarios:
             if usuario["matrix_id"] == user_id:
 
-                asignaturas.append(asignatura)
+                # Comprobamos si la asignatura tiene ya configurado un espacio en matrix 
+                existe_sala = db.query(SalaAsignatura).filter(
+                    SalaAsignatura.id_asignatura_prado == asignatura["asig_id"]
+                ).first()
+
+                info_asignatura = {
+                    "id": asignatura["asig_id"],
+                    "nombre": asignatura["nombre"],
+                    "usuarios": len(usuarios),
+                    "sincronizada": existe_sala is not None,
+                }
+                
+                asignaturas.append(info_asignatura)
                 break
+
     return asignaturas
 
