@@ -57,3 +57,21 @@ async def obtener_total_alumnos_usuario(user_id : str):
                     
     return len(alumnos_unicos)
 
+async def obtener_asignaturas_usuario(user_id: str): 
+    """
+    Obtiene el listado de asignaturas a las que pertenece un usuario
+    """
+
+    asignaturas = []
+
+    for asignatura in CATALOGO["asignaturas"]:
+
+        usuarios = asignatura["usuarios_matriculados"]
+
+        for usuario in usuarios:
+            if usuario["matrix_id"] == user_id:
+
+                asignaturas.append(asignatura)
+                break
+    return asignaturas
+

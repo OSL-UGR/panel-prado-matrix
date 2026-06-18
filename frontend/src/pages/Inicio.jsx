@@ -64,8 +64,8 @@ export default function Inicio() {
         </div>
 
         {/* Imagen central del vs. Esta se oculta en moviles*/}
-        <div className="hidden lg:flex flex-col items-center justify-center px-4 select-none">
-          <div className="h-16 w-[1px] bg-bordes/50 mb-4"></div>
+        <div className="hidden lg:flex flex-col items-center justify-center px-4">
+          <div className="h-16 w-px bg-bordes/50 mb-4"></div>
           
           <img 
             src="https://i.pinimg.com/736x/58/d7/2f/58d72f9f95c02dcee250fe7c9744d687.jpg" 
@@ -73,7 +73,7 @@ export default function Inicio() {
             className="w-20 object-contain filter invert grayscale-0 "
           />
           
-          <div className="h-16 w-[1px] bg-bordes/50 mt-4"></div>
+          <div className="h-16 w-px bg-bordes/50 mt-4"></div>
         </div>
 
         {/* Columna derecha de matrix */}
@@ -131,5 +131,7 @@ export default function Inicio() {
       <div>Por implementar dos columnas para la sincronización</div>
 
     </div>
+
+    
   );
 }

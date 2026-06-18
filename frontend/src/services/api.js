@@ -1,17 +1,16 @@
 // En este archivo realizaremos todas las comuniaciones entre el Frontend y el Backend de FatAPI
 
-
-
 // Lee la variable de entorno que Vite usa para saber dónde está el backend.
 // Si no existe, asume localhost:8000
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000/api";
+
 /**
- * Función para obtener la información de una sala en Matrix tras la petición en el backend
+ *  MATRIX: Función para obtener la información de una sala en Matrix tras la petición en el backend
  */
 export const fetchSalaInfo = async (roomId) => {
 
     try{
-        const response = await fetch(`${API_BASE_URL}/salas/${encodeURIComponent(roomId)}/info`);
+        const response = await fetch(`${API_BASE_URL}/matrix/salas/${encodeURIComponent(roomId)}`);
         
         if(!response.ok){
 
@@ -29,11 +28,12 @@ export const fetchSalaInfo = async (roomId) => {
 };
 
 /**
- * Función para obtener el perfil real del profesor de la sesión activa
+ *  MATRIX: Función para obtener el perfil real del profesor de la sesión activa
  */
 export const fetchPerfilUsuario = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/usuario/perfil`);
+        // Usamos el "me" para referirnos al usuario de la sesión
+        const response = await fetch(`${API_BASE_URL}/matrix/usuarios/me/perfil`);        
         if (!response.ok) {
             throw new Error(`Error en la petición: ${response.status}`);
         }
@@ -44,11 +44,11 @@ export const fetchPerfilUsuario = async () => {
     }
 };
 
-/* Función para obtener las estadísticas de la pestaña de inicio */
+/* INICIO: Función para obtener las estadísticas de la pestaña de inicio */
 export const fetchEstadisticasInicio = async () => {
 
     try{
-        const response = await fetch(`${API_BASE_URL}/inicio/stats`);
+        const response = await fetch(`${API_BASE_URL}/inicio/estadisticas`);        
         if (!response.ok) {
             throw new Error(`Error en la petición: ${response.status}`);
         }
@@ -56,6 +56,22 @@ export const fetchEstadisticasInicio = async () => {
     }catch (error){
 
         console.error("Error al obtener las estadísticas de la pestaña de inicio.")
+        throw error;
+    }
+};
+
+/* PRADO: Funcion para obtener el listado de asignaturas a las que pertenece un usario*/
+
+export const fetchAsignaturasPrado = async (userId = "@profesor:matrix.ugr.es") => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/prado/usuarios/${encodeURIComponent(userId)}/asignaturas`);
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        
+        console.error("Error al obtener las asignaturas de PRADO:", error);
         throw error;
     }
 };
