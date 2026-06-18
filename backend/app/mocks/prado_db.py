@@ -36,6 +36,14 @@ USUARIO3 = {
     "correo": "ejemplo3@correo.ugr.es"
 }
 
+USUARIO4 = {
+    "prado_id": "1004",
+    "nombre": "Alumno ejemplo4",
+    "rol": "alumno",
+    "matrix_id": "@e.ejemplo4:matrix.ugr.es",
+    "correo": "ejemplo4@correo.ugr.es"
+}
+
 # =============================
 # DEFINIMOS LAS ASIGNATURAS
 # =============================
@@ -48,6 +56,7 @@ ASIGNATURA1 = {
         USUARIO1,
         USUARIO2,
         USUARIO3,
+        USUARIO4,
     ]
 }
 
@@ -57,6 +66,8 @@ ASIGNATURA2 = {
     "usuarios_matriculados":[
         PROFESOR,
         USUARIO1,
+        USUARIO3,
+        USUARIO4
     ]
 }
 

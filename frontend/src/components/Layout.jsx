@@ -10,7 +10,6 @@ export default function Layout() {
     matrix_id: 'Sincronizando...',
   });
 
-  // Petición a la API al montar el componente
   useEffect(() => {
     const cargarPerfil = async () => {
       try {

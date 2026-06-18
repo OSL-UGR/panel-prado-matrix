@@ -45,7 +45,6 @@ export const fetchPerfilUsuario = async () => {
 };
 
 /* Función para obtener las estadísticas de la pestaña de inicio */
-
 export const fetchEstadisticasInicio = async () => {
 
     try{
