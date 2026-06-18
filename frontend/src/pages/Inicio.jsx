@@ -28,6 +28,7 @@ export default function Inicio() {
     };
     cargarDatosBackend();
   }, []);
+  
 
   // Función a ejecutar al pulsar el botón de SINCRONIZAR
   const handleSincronizar = async (idAsignatura) => {
