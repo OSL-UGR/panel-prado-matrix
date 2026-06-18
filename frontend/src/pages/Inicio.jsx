@@ -1,23 +1,49 @@
 import { useState, useEffect } from 'react';
-import { fetchEstadisticasInicio  } from '../services/api';
+import { fetchEstadisticasInicio,fetchAsignaturasPrado  } from '../services/api';
 
 export default function Inicio() {
   const [stats, setStats] = useState(null);
+  const [asignaturas, setAsignaturas] = useState([]); 
   const [cargando, setCargando] = useState(true);
+  const [sincronizando, setSincronizando] = useState(null);
 
   useEffect(() => {
-    const cargarEstadisticas = async () => {
+    const cargarDatosBackend = async () => {
       try {
-        const data = await fetchEstadisticasInicio ();
-        setStats(data);
+
+        const [statsData, asignaturasData] = await Promise.all([
+
+          fetchEstadisticasInicio (),
+          fetchAsignaturasPrado()
+        ])
+
+        setStats(statsData);
+        setAsignaturas(asignaturasData);
+
       } catch (error) {
-        console.error("Error cargando estadísticas:", error);
+        console.error("Error cargando la información de la pantalla de inicio:", error);
       } finally {
         setCargando(false);
       }
     };
-    cargarEstadisticas();
+    cargarDatosBackend();
   }, []);
+
+  // Función a ejecutar al pulsar el botón de SINCRONIZAR
+  const handleSincronizar = async (idAsignatura) => {
+    setSincronizando(idAsignatura); // UI: Ponemos el botón en "girando"
+    
+    // [AQUÍ IRÁ LA LLAMADA POST AL ENDPOINT DE SINCRONIZAR CUANDO LO CREEMOS]
+    console.log(`Simulando envío a Matrix para la asignatura ${idAsignatura}...`);
+    
+    // Simulación temporal para probar la interfaz (luego lo borraremos)
+    setTimeout(() => {
+      setSincronizando(null); // UI: Quitamos el "girando"
+      // En la versión final, aquí llamaremos a cargarDatosBackend() 
+      // para que el servidor nos dé el nuevo estado real.
+    }, 2000);
+  };
+  
 
   if (cargando) {
     return (
@@ -128,7 +154,103 @@ export default function Inicio() {
       ) : null}
 
       {/* Columnas de sincronziación de salas Prado con Matrix */}
-      <div>Por implementar dos columnas para la sincronización</div>
+
+      <div className="m-4 border-t border-bordes p-8">
+
+        <h3 className="text-lg text-texto font-bold mb-6 text-right"> [ PANEL_DE_CONTROL_DE_ASIGNATURAS ] </h3>
+
+        <div className="flex flex-col gap-4">
+
+          {/* Recorremos todas las asignaturas para imprimir cada una de las tarjetas */}
+          {asignaturas?.map((asig) => {
+
+            const isSincronizada = asig.sincronizada; //Ya está creada en Matrix
+            const isSincronizando = sincronizando === asig.id; // Se está creando
+
+            let estadoBoton = "sinSincronizar";
+            if (isSincronizada) estadoBoton = "sincronizado";
+            else if (isSincronizando) estadoBoton = "cargando";
+
+            // Los distintos estados del boton
+            const botonClass = {
+              sincronizado: "border-green-500/50 text-green-500 cursor-not-allowed opacity-50 bg-green-500/10",
+              cargando: "border-yellow-500 text-yellow-500 cursor-wait bg-yellow-500/10",
+              sinSincronizar: "border-azul-turquesa text-azul-turquesa hover:bg-azul-turquesa hover:text-fondo cursor-pointer hover:shadow-[0_0_15px_rgba(0,255,255,0.4)]"
+            }[estadoBoton];
+
+            // Renderizado del contenido del botón
+            const renderBotonTexto = () => {
+              if (isSincronizando) {
+                return (
+                  <span className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-500 animate-spin"></div>
+                    ENVIANDO_DATOS...
+                  </span>
+                );
+              }
+              if (isSincronizada) {
+                return <p>ENLACE_ESTABLECIDO</p>;
+              }
+              return (
+                <span className="flex items-center gap-2 font-bold tracking-widest">
+                  SINCRONIZAR <span className="text-xl group-hover:translate-x-1 transition-transform">»</span>
+                </span>
+              );
+            };
+
+            // Estilos del panel de estado
+            const estadoPanelClass = isSincronizada
+              ? "border-green-500 bg-green-500/5"
+              : "border-red-500/50 bg-red-500/5";
+
+            const estadoTexto = isSincronizada ? "SALA_ACTIVA" : "NO_DETECTADA";
+            const estadoColor = isSincronizada ? "text-green-500" : "text-red-500";
+
+            return (
+              <div key={asig.id} className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-8 items-center bg-paneles border border-bordes p-4 hover:border-texto transition-colors">
+                
+                {/* 1. INFO DE PRADO */}
+                <div className="flex flex-col">
+                  <span className="text-texto font-bold text-lg">{asig.nombre}</span>
+                  <span className="text-xs text-bordes">ID_PRADO: #{asig.id} | {asig.usuarios} Usuarios</span>
+                </div>
+
+                {/* 2. BOTÓN DE SINCRONIZAR */}
+                <div className="flex justify-center items-center">
+                  <button 
+                    onClick={() => handleSincronizar(asig.id)}
+                    disabled={isSincronizada || isSincronizando}
+                    className={`relative group flex items-center justify-center h-12 px-6 border-2 transition-all duration-300 ${botonClass}`}
+                  >
+                    {renderBotonTexto()}
+                  </button>
+                </div>
+
+                {/* 3. ESTADO EN MATRIX */}
+                <div className="flex justify-end items-center">
+                  <div className={`border p-3 flex flex-col items-end w-full md:w-48 ${estadoPanelClass}`}>
+                    <span className="text-[10px] tracking-widest text-bordes mb-1 uppercase">
+                      Estado Servidor
+                    </span>
+                    <div className={`flex items-center gap-2 font-bold ${estadoColor}`}>
+                      <div className={`w-2 h-2 ${isSincronizada ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                      {estadoTexto}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            );
+          })}
+          
+          {(!asignaturas || asignaturas.length === 0) && (
+            <div className="text-center text-bordes py-8 border border-dashed border-bordes">
+              [ NO_SE_HAN_ENCONTRADO_ASIGNATURAS_PARA_ESTE_USUARIO ]
+            </div>
+          )}
+
+        </div>
+      </div>
 
     </div>
 
