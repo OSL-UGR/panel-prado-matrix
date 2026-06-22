@@ -68,7 +68,7 @@ async def get_asignaturas(user_id: str, db: Session = Depends(get_db)):
 
     return await obtener_asignaturas_usuario(user_id,db)
 
-@router.get("/prado/asignaturas/{asignatura_id}/sincronizar")
+@router.post("/prado/asignaturas/{asignatura_id}/sincronizar")
 async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends(get_db)):
 
     # 1º Obtenemos toda la información de la asignatura, id, nombre y sus usuarios matriculados
@@ -101,7 +101,7 @@ async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends
     if "ERROR" in res_crear_espacio:
         raise HTTPException(status_code=500, detail=res_crear_espacio["ERROR"])
     
-    room_id = res_crear_espacio # Obtenemos el id del espacio que se acaba de crear.
+    room_id = res_crear_espacio["room_id"] # Obtenemos el id del espacio que se acaba de crear.
 
     # 3. Matriculamos e insertamos a todos los alumnos de la asignatura de Prado en la sala que acabamos de crar
     res_insertar_alumnos = await insertar_alumnos_sala(room_id, ids_alumnos)
