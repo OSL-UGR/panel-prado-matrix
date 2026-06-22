@@ -168,18 +168,19 @@ export default function Inicio() {
             const isSincronizada = asig.sincronizada; //Ya está creada en Matrix
             const isSincronizando = sincronizando === asig.id; // Se está creando
 
+            // Definimos los 3 estados que hay
             let estadoBoton = "sinSincronizar";
             if (isSincronizada) estadoBoton = "sincronizado";
             else if (isSincronizando) estadoBoton = "cargando";
 
-            // Los distintos estados del boton
+            // Definimos el estilo de los botones de la pantalla intermedia
             const botonClass = {
-              sincronizado: "border-green-500/50 text-green-500 cursor-not-allowed opacity-50 bg-green-500/10",
-              cargando: "border-yellow-500 text-yellow-500 cursor-wait bg-yellow-500/10",
-              sinSincronizar: "border-azul-turquesa text-azul-turquesa hover:bg-azul-turquesa hover:text-fondo cursor-pointer hover:shadow-[0_0_15px_rgba(0,255,255,0.4)]"
+              sincronizado: "border-green-500/50 text-green-500 bg-green-500/10",
+              cargando: "border-yellow-500 text-yellow-500 bg-yellow-500/10",
+              sinSincronizar: "border-azul-turquesa text-azul-turquesa cursor-pointer hover:bg-azul-turquesa hover:text-fondo"
             }[estadoBoton];
 
-            // Renderizado del contenido del botón
+            //Renderizamos el contenido del botón según los 3 estados que tiene
             const renderBotonTexto = () => {
               if (isSincronizando) {
                 return (
@@ -189,13 +190,14 @@ export default function Inicio() {
                   </span>
                 );
               }
+
               if (isSincronizada) {
                 return <p>ENLACE_ESTABLECIDO</p>;
               }
               return (
-                <span className="flex items-center gap-2 font-bold tracking-widest">
-                  SINCRONIZAR <span className="text-xl group-hover:translate-x-1 transition-transform">»</span>
-                </span>
+                <p className="flex items-center gap-2 font-bold ">
+                  SINCRONIZAR <p className="text-xl">»</p>
+                </p>
               );
             };
 
@@ -230,8 +232,8 @@ export default function Inicio() {
                 {/* 3. ESTADO EN MATRIX */}
                 <div className="flex justify-end items-center">
                   <div className={`border p-3 flex flex-col items-end w-full md:w-48 ${estadoPanelClass}`}>
-                    <span className="text-[10px] tracking-widest text-bordes mb-1 uppercase">
-                      Estado Servidor
+                    <span className="text-[10px] tracking-widest text-bordes mb-1">
+                      Estado Matrix
                     </span>
                     <div className={`flex items-center gap-2 font-bold ${estadoColor}`}>
                       <div className={`w-2 h-2 ${isSincronizada ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
