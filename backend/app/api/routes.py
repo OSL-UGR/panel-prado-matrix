@@ -11,8 +11,22 @@ from app.models.sala_asignaturas import SalaAsignatura
 from app.models.usuarios import Usuario
 
 # Importamos los dos servicios
-from app.services.matrix_api import obtener_info_sala, obtener_perfil_usuario
-from app.services.prado_api import obtener_alumnos_prado_service, obtener_total_alumnos_usuario, obtener_total_asignaturas_usuario, obtener_asignaturas_usuario
+from app.services.matrix_api import(
+
+    obtener_info_sala, 
+    obtener_perfil_usuario,
+    registrar_usuarios_matrix,
+    crear_espacio_asignatura,
+    insertar_alumnos_sala
+)
+
+from app.services.prado_api import(
+
+    obtener_alumnos_prado_service, 
+    obtener_total_alumnos_usuario, 
+    obtener_total_asignaturas_usuario, 
+    obtener_asignaturas_usuario
+)
 
 # Importamos el usuario activo de nuestro Mock de Prado
 # TODO: esto habrá que actualizarlo con las variables de sesión de prado

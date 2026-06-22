@@ -195,16 +195,16 @@ async def insertar_alumnos_sala(room_id:str, ids_alumnos: list):
             
             res = await client.post(
 
-                f"{settings.SYNAPSE_ADMIN_URL}/v1/join/{room_id}"
-                headers=headers
+                f"{settings.SYNAPSE_ADMIN_URL}/v1/join/{room_id}",
+                headers=headers,
                 json=payload
             )
 
             if res.status_code == 200:
 
-                id_alumnos_matriculados.append()
+                id_alumnos_matriculados.append(alumno_id)
             else:
-                errores.append(f"Fallo al matricular a {alumno_id}: {respuesta.status_code} - {respuesta.text}")
+                errores.append(f"Fallo al matricular a {alumno_id}: {res.status_code} - {res.text}")
 
     return {
         "id_alumnos_matriculados": id_alumnos_matriculados,
