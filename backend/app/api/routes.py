@@ -3,7 +3,7 @@
 # Aquí definiremos las URLs de nuestra API (Ej: @app.post("/rooms/{room_id}/kick"))
 # Estas funciones reciben la petición HTTP, llaman a los services para ejecutar la accion y devuelven el resultado al Front.
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db # Obteenemos la base de datos
 
@@ -68,6 +68,78 @@ async def get_asignaturas(user_id: str, db: Session = Depends(get_db)):
 
     return await obtener_asignaturas_usuario(user_id,db)
 
+@router.get("/prado/asignaturas/{asignatura_id}/sincronizar")
+async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends(get_db)):
+
+    # 1º Obtenemos toda la información de la asignatura, id, nombre y sus usuarios matriculados
+    info_asignatura = await obtener_alumnos_prado_service(asignatura_id)
+
+    if info_asignatura.get("error") is True:
+        raise HTTPException(status_code=404, detail=info_asignatura["mensaje"])
+    
+    nombre_asignatura = info_asignatura["nombre"]
+    usuarios_asignatura = info_asignatura["usuarios_matriculados"]
+
+    # Obtenemos el id del profesor (de la sesión activa) y su la lista de alumnos de la asignatura selecionada
+    profesor_id = PROFESOR["matrix_id"]
+
+    ids_alumnos = []
+
+    for usuario in usuarios_asignatura:
+        if usuario["matrix_id"] != profesor_id:
+            ids_alumnos.append(usuario["matrix_id"])
+
+    # 1. Tenemos que insertar a los usuarios en Matrix que todavía no lo hayan echo ellos manualmente
+    res_registrar_usuarios = await registrar_usuarios_matrix(usuarios_asignatura)
+
+    if len(res_registrar_usuarios["errores"]) > 0:
+        print(f"Advertencias al registrar usuarios: {res_registrar_usuarios['errores']}")
+
+    # 2. Creamos el espacio
+    res_crear_espacio = await crear_espacio_asignatura(nombre_asignatura, profesor_id)
+
+    if "ERROR" in res_crear_espacio:
+        raise HTTPException(status_code=500, detail=res_crear_espacio["ERROR"])
+    
+    room_id = res_crear_espacio # Obtenemos el id del espacio que se acaba de crear.
+
+    # 3. Matriculamos e insertamos a todos los alumnos de la asignatura de Prado en la sala que acabamos de crar
+    res_insertar_alumnos = await insertar_alumnos_sala(room_id, ids_alumnos)
+
+    if len(res_insertar_alumnos["errores"]) > 0:
+        print(f"Advertencias al matricular alumnos: {res_insertar_alumnos['errores']}")
+
+    # 4 Registramos en nuestra bd local la información para almacenar la sincronización 
+    try:
+        nueva_sala_db = SalaAsignatura(
+            id_asignatura_prado=asignatura_id,
+            id_matrix_sala=room_id,
+            alias_principal=nombre_asignatura,
+            tipo="espacio"
+        )
+        db.add(nueva_sala_db)
+        db.commit()
+        db.refresh(nueva_sala_db) 
+        
+    except Exception as e:
+        db.rollback() 
+        raise HTTPException(status_code=500, detail=f"Error guardando en base de datos: {str(e)}")
+    
+    # Respondemos al frontend
+    return {
+        "status": "success",
+        "mensaje": f"Sincronización completada. Espacio creado: {room_id}",
+        "resumen": {
+            "usuarios_registrados": len(res_registrar_usuarios["id_usuarios_registrados"]),
+            "alumnos_matriculados": len(res_insertar_alumnos["id_alumnos_matriculados"]),
+            "errores_pendientes": len(res_registrar_usuarios["errores"]) + len(res_insertar_alumnos["errores"])
+        }
+    }
+
+
+    
+
+
 # ==========================================
 # RUTAS DE LA PESTAÑA DE INICIO PERSONALIZADAS
 # ==========================================
@@ -94,3 +166,4 @@ async def get_inicio_estadisticas(db: Session = Depends(get_db)):
             "alumnos": total_alumnos_matrix
         }
     }
+
