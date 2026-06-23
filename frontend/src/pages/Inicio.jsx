@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchEstadisticasInicio,fetchAsignaturasPrado  } from '../services/api';
+import { fetchEstadisticasInicio,fetchAsignaturasPrado, fetchSincronizarAsignatura  } from '../services/api';
 
 export default function Inicio() {
   const [stats, setStats] = useState(null);
@@ -32,17 +32,41 @@ export default function Inicio() {
 
   // Función a ejecutar al pulsar el botón de SINCRONIZAR
   const handleSincronizar = async (idAsignatura) => {
-    setSincronizando(idAsignatura); // UI: Ponemos el botón en "girando"
+    setSincronizando(idAsignatura); //Ponemos el botón de la interfaz girando
     
-    // [AQUÍ IRÁ LA LLAMADA POST AL ENDPOINT DE SINCRONIZAR CUANDO LO CREEMOS]
-    console.log(`Simulando envío a Matrix para la asignatura ${idAsignatura}...`);
-    
-    // Simulación temporal para probar la interfaz (luego lo borraremos)
-    setTimeout(() => {
-      setSincronizando(null); // UI: Quitamos el "girando"
-      // En la versión final, aquí llamaremos a cargarDatosBackend() 
-      // para que el servidor nos dé el nuevo estado real.
-    }, 2000);
+    try{
+      
+      const res = await fetchSincronizarAsignatura(idAsignatura);
+      
+      console.log("Se ha sincronizado correctamente:", res);
+      
+    }catch (error){
+
+      alert(`Hubo un error al intentar sincronizar: ${error.message}`);
+      
+    }finally{
+      
+      setSincronizando(null); //Quitamos el estado de girar una vez se haya ejecutado
+      
+      // enemos que cargar automáticamente los datos de las estdísticas del backend, y cambiar el color a verde si la sincroniación fue correta
+      const cargarDatosNuevos = async () => {
+        try{
+
+          const [statsData, asignaturasData] = await Promise.all([
+            fetchEstadisticasInicio(),
+            fetchAsignaturasPrado()
+          ]);
+
+          setStats(statsData);
+          setAsignaturas(asignaturasData);
+        }catch (e){
+
+          console.error("Error al refrescar tras sincronizar", e);
+        }
+      };
+      
+      await cargarDatosNuevos();
+    }
   };
   
 
