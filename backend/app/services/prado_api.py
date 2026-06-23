@@ -83,6 +83,7 @@ async def obtener_asignaturas_usuario(user_id: str, db: Session):
                     "nombre": asignatura["nombre"],
                     "usuarios": len(usuarios),
                     "sincronizada": existe_sala is not None,
+                    "room_id": existe_sala.id_matrix_sala if existe_sala else None
                 }
                 
                 asignaturas.append(info_asignatura)

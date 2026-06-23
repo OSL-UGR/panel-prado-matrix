@@ -232,14 +232,6 @@ export default function Inicio() {
               );
             };
 
-            // Estilos del panel de estado
-            const estadoPanelClass = isSincronizada
-              ? "border-green-500 bg-green-500/5"
-              : "border-red-500/50 bg-red-500/5";
-
-            const estadoTexto = isSincronizada ? "SALA_ACTIVA" : "NO_DETECTADA";
-            const estadoColor = isSincronizada ? "text-green-500" : "text-red-500";
-
             return (
               <div key={asig.id} className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-8 items-center bg-paneles border border-bordes p-4 hover:border-texto transition-colors">
                 
@@ -262,15 +254,34 @@ export default function Inicio() {
 
                 {/* 3. ESTADO EN MATRIX */}
                 <div className="flex justify-end items-center">
-                  <div className={`border p-3 flex flex-col items-end w-full md:w-48 ${estadoPanelClass}`}>
-                    <span className="text-[10px] tracking-widest text-bordes mb-1">
-                      Estado Matrix
-                    </span>
-                    <div className={`flex items-center gap-2 font-bold ${estadoColor}`}>
-                      <div className={`w-2 h-2 ${isSincronizada ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                      {estadoTexto}
+                  {isSincronizada ? (
+                    //Si está sincronizada, mostramos el botón clickeable hacia Matrix
+                    <a 
+                      href={`https://matrix.ugr.es/#/room/${asig.room_id}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="border p-3 flex flex-col items-end w-full md:w-48 border-green-500 bg-green-500/10 hover:bg-green-500/20 transition-colors cursor-pointer group"
+                    >
+                      <span className="text-[10px] tracking-widest text-green-500 mb-1 group-hover:text-green-400">
+                        ESPACIO_CREADO
+                      </span>
+                      <div className="flex items-center gap-2 font-bold text-green-500">
+                        <div className="w-2 h-2 bg-green-500 animate-pulse"></div>
+                        ACCEDER »
+                      </div>
+                    </a>
+                  ) : (
+                    //Si NO está sincronizada, mantenemos el panel p rojo
+                    <div className="border p-3 flex flex-col items-end w-full md:w-48 border-red-500/50 bg-red-500/5">
+                      <span className="text-[10px] tracking-widest text-bordes mb-1">
+                        Estado Matrix
+                      </span>
+                      <div className="flex items-center gap-2 font-bold text-red-500">
+                        <div className="w-2 h-2 bg-red-500"></div>
+                        NO_DETECTADA
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
               </div>

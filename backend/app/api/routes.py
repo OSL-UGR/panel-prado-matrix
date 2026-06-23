@@ -111,13 +111,37 @@ async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends
 
     # 4 Registramos en nuestra bd local la información para almacenar la sincronización 
     try:
+        # Por un lado la nueva sala
         nueva_sala_db = SalaAsignatura(
             id_asignatura_prado=asignatura_id,
             id_matrix_sala=room_id,
             alias_principal=nombre_asignatura,
             tipo="espacio"
         )
+
         db.add(nueva_sala_db)
+
+
+        # Por otro los usuarios en nuestra tabla (si es que no existiesen ya)
+        for usuario in usuarios_asignatura:
+
+            matrix_usuario_id = usuario["matrix_id"]
+
+            # Verificamos si el usuario ya estaba registrado
+            existe_usuario = db.query(Usuario).filter(Usuario.matrix_id == matrix_usuario_id).first()
+
+            # Si no existiese lo registramos
+            if not existe_usuario:
+
+                nuevo_usuario = Usuario(
+
+                    correo=usuario["correo"],
+                    nombre=usuario["nombre"],
+                    matrix_id=matrix_usuario_id
+                )
+
+                db.add(nuevo_usuario)
+
         db.commit()
         db.refresh(nueva_sala_db) 
         
