@@ -35,8 +35,15 @@ export default function Inicio() {
     setSincronizando(idAsignatura); //Ponemos el botón de la interfaz girando
     
     try{
+
+      // Si la operación tarda < de 2 segundos, forzamos la animacion para mejorar la UX
+      const esperaMinima = new Promise(resolve => setTimeout(resolve, 2000));
       
-      const res = await fetchSincronizarAsignatura(idAsignatura);
+      // El promise terminará cuando la más lenta de los dos termine
+      const [res] = await Promise.all([
+        fetchSincronizarAsignatura(idAsignatura),
+        esperaMinima
+      ]);
       
       console.log("Se ha sincronizado correctamente:", res);
       
