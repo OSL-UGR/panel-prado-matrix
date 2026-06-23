@@ -76,3 +76,16 @@ export const fetchAsignaturasPrado = async () => {
         throw error;
     }
 };
+
+/* SISTEMA: Funcion para sincronizar una asignatura de Prado hacia Matrix*/
+
+export const fetchSincronizarAsignatura = async (asignaturaId) =>{
+    try{
+
+        
+    } catch (error) {
+
+        console.error(`Error sincronizando la asignatura ${asignaturaId}`, error);
+        throw error
+    }
+}

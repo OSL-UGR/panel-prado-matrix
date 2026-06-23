@@ -88,6 +88,7 @@ async def registrar_usuarios_matrix(usuarios_prado: list):
         for usuario in usuarios_prado:
             
             matrix_id = usuario["matrix_id"]
+            print(f"[LOG REGISTRAR]: 1. Comprobando usuario con su url: {settings.SYNAPSE_ADMIN_URL}/v2/users/{matrix_id}") # DEUPRACION
             
             # 1º Comrpobamos si el usuario ya existe en matrix o no
             # Documentacion oficial https://matrix-org.github.io/synapse/latest/admin_api/user_admin_api.html
@@ -97,10 +98,16 @@ async def registrar_usuarios_matrix(usuarios_prado: list):
                 headers = headers
             )
 
+            print(f"[LOG REGISTRAR]: 2. Comprobando codigo de estado: {comprobador.status_code}") # Depuración
+                  
             if comprobador.status_code == 200:
+
+                print(f"[LOG REGISTRAR]: 3. El usuario ya estaba registrado.") # Depuración
                 id_usuarios_registrados.append(matrix_id)
             
             elif comprobador.status_code == 404:
+
+                print(f"[LOG REGISTRAR]: 4. Creamos al usuario manualmente") # Depuración
                 # 2. Si el usuario no existe lo creamos manualmente 
                 password_aleatoria = secrets.token_urlsafe(16)
 
@@ -109,6 +116,7 @@ async def registrar_usuarios_matrix(usuarios_prado: list):
                     "displayname": usuario["nombre"]
                 } 
 
+                print(f"[LOG REGISTRAR]: 5. Comrpobando url al crear usuario.") # Depuración
                 res_crear = await client.put(
 
                     f"{settings.SYNAPSE_ADMIN_URL}/v2/users/{matrix_id}",
@@ -118,9 +126,10 @@ async def registrar_usuarios_matrix(usuarios_prado: list):
 
                 if res_crear.status_code in [200, 201]: # 200 OK o 201 Created
 
+                    print(f"[LOG REGISTRAR]: 6. Se ha creado el usuario correctamente") # Depuración
                     id_usuarios_registrados.append(matrix_id)
                 else:
-
+                    print(f"[LOG REGISTRAR]: 7. Ha ocurrido el siguiente error al crear a {matrix_id}: {res_crear.status_code} ") # Depuración
                     errores.append(f"Fallo al crear a {matrix_id}: {res_crear.status_code}")
             
             else:
@@ -192,7 +201,9 @@ async def insertar_alumnos_sala(room_id:str, ids_alumnos: list):
         for alumno_id in ids_alumnos:
 
             payload = {"user_id": alumno_id}
-            
+
+            print(f"[LOG INSERTAR]: 1. Matriculando a {alumno_id} en {room_id} con la url: {settings.SYNAPSE_ADMIN_URL}/v1/join/{room_id}") # Depuración
+
             res = await client.post(
 
                 f"{settings.SYNAPSE_ADMIN_URL}/v1/join/{room_id}",
@@ -202,8 +213,11 @@ async def insertar_alumnos_sala(room_id:str, ids_alumnos: list):
 
             if res.status_code == 200:
 
+                print(f"[LOG INSERTAR]: 2. Se ha matriculado correctamente el usuario: {alumno_id}") # Depuración
                 id_alumnos_matriculados.append(alumno_id)
             else:
+
+                print(f"[LOG INSERTAR]: 3. Ha aparecido el siguiente error al matriculr a: : {alumno_id}: {res.status_code} - {res.text}") # Depuración
                 errores.append(f"Fallo al matricular a {alumno_id}: {res.status_code} - {res.text}")
 
     return {
