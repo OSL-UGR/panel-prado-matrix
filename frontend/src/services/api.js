@@ -77,11 +77,23 @@ export const fetchAsignaturasPrado = async () => {
     }
 };
 
-/* SISTEMA: Funcion para sincronizar una asignatura de Prado hacia Matrix*/
+/* SISTEMA: Funcion para sincronizar una asignatura de Prado hacia Matrix (POST)*/
 
 export const fetchSincronizarAsignatura = async (asignaturaId) =>{
     try{
+        const response = await fetch(`${API_BASE_URL}/prado/asignaturas/${encodeURIComponent(asignaturaId)}/sincronizar`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });        
 
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
         
     } catch (error) {
 
