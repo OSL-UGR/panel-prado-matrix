@@ -13,7 +13,7 @@ class Settings:
     MATRIX_URL: str = os.getenv("MATRIX_URL")
     SYNAPSE_ADMIN_URL: str = os.getenv("SYNAPSE_ADMIN_URL")
     MATRIX_TOKEN: str = os.getenv("MATRIX_TOKEN")
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL")
 
 
 settings = Settings() # Creamos la instancia para usarla en el resto del proyecto y así acceder a las variables
