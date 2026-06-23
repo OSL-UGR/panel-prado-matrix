@@ -26,3 +26,6 @@ class SalaAsignatura(Base):
     alias_principal = Column(String)
 
     tipo = Column(Enum(TipoSala)) # Espacio, sala o sala_avisos
+
+    # Guardael id de Matrix del espacio del padre que tenga 
+    id_padre = Column(String, index=True, nullable=True) # El nullable es por que el nivel 0 no tendrá padre
