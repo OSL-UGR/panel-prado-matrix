@@ -253,25 +253,24 @@ export default function Inicio() {
                 </div>
 
                 {/* 3. ESTADO EN MATRIX */}
-                <div className="flex justify-end items-center">
+                <div className="flex justify-end">
                   {isSincronizada ? (
                     //Si está sincronizada, mostramos el botón clickeable hacia Matrix
                     <a 
                       href={`https://matrix.ugr.es/#/room/${asig.room_id}`} 
                       target="_blank" 
-                      rel="noopener noreferrer"
                       className="border p-3 flex flex-col items-end w-full md:w-48 border-green-500 bg-green-500/10 hover:bg-green-500/20 transition-colors cursor-pointer group"
                     >
-                      <span className="text-[10px] tracking-widest text-green-500 mb-1 group-hover:text-green-400">
+                      <p className="text-[10px] tracking-widest text-bordes mb-1">
                         ESPACIO_CREADO
-                      </span>
+                      </p>
                       <div className="flex items-center gap-2 font-bold text-green-500">
                         <div className="w-2 h-2 bg-green-500 animate-pulse"></div>
                         ACCEDER »
                       </div>
                     </a>
                   ) : (
-                    //Si NO está sincronizada, mantenemos el panel p rojo
+                    //Si NO está sincronizada, mantenemos el panel  rojo
                     <div className="border p-3 flex flex-col items-end w-full md:w-48 border-red-500/50 bg-red-500/5">
                       <span className="text-[10px] tracking-widest text-bordes mb-1">
                         Estado Matrix
