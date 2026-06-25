@@ -17,7 +17,8 @@ from app.services.matrix_api import(
     obtener_perfil_usuario,
     registrar_usuarios_matrix,
     crear_espacio_asignatura,
-    insertar_alumnos_sala
+    insertar_alumnos_sala,
+    arreglar_jerarquia
 )
 
 from app.services.prado_api import(
@@ -161,11 +162,17 @@ async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends
     }
 
 
-@router.get("prado/asignaturas/{asignatura_id}/salas")
+@router.get("/prado/asignaturas/{asignatura_id}/salas")
 async def get_salas_asignatura(asignatura_id : str, db: Session = Depends(get_db)):
     """
     Devuelve todas las salas y espacios de una asignatura a partir de su id
     """
+
+    espacio_raiz = db.query(SalaAsignatura).filter(SalaAsignatura.id_asignatura_prado == asignatura_id,SalaAsignatura.id_padre == None).first()
+
+    # Revisamos que no haya inconcruencias para sincronizar nuestra base de datos con la información del matrix
+    if espacio_raiz: 
+        await arreglar_jerarquia(espacio_raiz.id_matrix_sala, asignatura_id, db)
 
     salas_db = db.query(SalaAsignatura).filter(SalaAsignatura.id_asignatura_prado == asignatura_id).all()
 

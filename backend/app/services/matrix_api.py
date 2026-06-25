@@ -7,7 +7,7 @@ import httpx # Para peticiones GET, POST, PUT etc
 import secrets
 import asyncio
 from sqlalchemy.orm import Session
-from app.models.sala_asignaturas import SalaAsignatura # Así podremos hacer db.query(SalaAsignatura)
+from app.models.sala_asignaturas import SalaAsignatura, TipoSala # Así podremos hacer db.query(SalaAsignatura)
 from app.core.config import settings
 
 async def obtener_info_sala(db: Session, room_id: str): # Aync para que no se bloquee y así pueda antender otras peticiones mientras
@@ -224,3 +224,104 @@ async def insertar_alumnos_sala(room_id:str, ids_alumnos: list):
         "id_alumnos_matriculados": id_alumnos_matriculados,
         "errores": errores
     }
+
+async def arreglar_jerarquia(espacio_raiz_id : str, asignatura_id: str, db: Session):
+    """
+    Consultamos la jerarquía de un espacio en Matrix para añadir o borrar las salas de nuestra bd según sea necesario.
+    """
+
+    headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
+
+    async with httpx.AsyncClient() as client:
+
+        
+        res = await client.get(
+            f"{settings.MATRIX_URL}/v1/rooms/{espacio_raiz_id}/hierarchy",
+            headers=headers,
+        )
+
+        if res.status_code != 200:
+
+            return {"ERROR":f"Fallo al conectar con Matrix para consultar la estructura de {espacio_raiz_id} : {res.status_code}"}
+        
+        data = res.json()
+
+        # Obtenemos las salas y sus ids de las salas obtenidas a traves de la API de matrix
+        salas_matrix = data.get("rooms", [])
+        ids_matrix = set()
+
+        for sala in salas_matrix:
+            ids_matrix.add(sala["room_id"])
+
+        # Obtenemos las salas y sus ids de las salas almacenadas en nuestra base de datos
+        salas_bd = db.query(SalaAsignatura).filter(SalaAsignatura.id_asignatura_prado == asignatura_id).all()
+        ids_bd = set()
+
+        for sala in salas_bd:
+            ids_bd.add(sala.id_matrix_sala)
+
+        # Construimos el mapa de padres
+
+        mapa_padres = {}
+        
+        for sala in salas_matrix:
+            posible_padre_id = sala["room_id"]
+            eventos_hijos = sala.get("children_state", [])
+            
+            for evento in eventos_hijos:
+
+                if evento.get("type") == "m.space.child" and evento.get("content"):
+                    hijo_id = evento.get("state_key")
+                    mapa_padres[hijo_id] = posible_padre_id #Registramos quién es el padre de este hijo
+
+
+        # Resolvemos las incroncruencias
+        try:
+
+            ids_para_borrar = ids_bd - ids_matrix # Las salas que se hayan borrado a través de Matrix
+            ids_para_insertar = ids_matrix - ids_bd # Las salas que se hayan insertado a través de Matrix
+
+            # BORRAMOS
+            if ids_para_borrar:
+                db.query(SalaAsignatura).filter(SalaAsignatura.id_matrix_sala.in_(ids_para_borrar)).delete(synchronize_session=False)
+
+            # INSERTAMOS
+            if ids_para_insertar:
+
+                nuevas_salas = []
+
+                for sala in salas_matrix:
+                    room_id = sala["room_id"]
+
+                    if room_id in ids_para_insertar:
+                        nuevas_salas.append(sala)
+
+                for nueva_sala in nuevas_salas:
+
+                    # Detectamos si lo que se ha creado es un espacio o una sala
+                    if nueva_sala.get("room_type") == "m.space":
+                        tipo = TipoSala.espacio
+                    else:
+                        tipo = TipoSala.sala
+
+                    padre_id = mapa_padres.get(nueva_sala["room_id"], espacio_raiz_id)
+
+                    # Construimos la sala para insertarla en la base de datos
+                    sala_insertar = SalaAsignatura(
+                        id_asignatura_prado=asignatura_id,
+                        id_matrix_sala=nueva_sala["room_id"],
+                        alias_principal=nueva_sala.get("name", "Sala sin nombre"),
+                        tipo=tipo,
+                        id_padre=padre_id 
+                    )
+
+                    db.add(sala_insertar)
+
+            # Guardamos los cambios si los hubo
+            if ids_para_borrar or ids_para_insertar:
+                db.commit()
+
+        except Exception as e:
+            db.rollback()
+            print("ERROR: Fallo resolviendo las incongruencias entre la Base de datos y el estado de Matrix")
+
