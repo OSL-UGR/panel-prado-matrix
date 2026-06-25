@@ -160,7 +160,6 @@ async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends
         }
     }
 
-@router.post("/prado/asignaturas/{asignatura_id}/sincronizar")
 
 @router.get("prado/asignaturas/{asignatura_id}/salas")
 async def get_salas_asignatura(asignatura_id : str, db: Session = Depends(get_db)):

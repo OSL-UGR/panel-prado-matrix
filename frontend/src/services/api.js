@@ -101,3 +101,20 @@ export const fetchSincronizarAsignatura = async (asignaturaId) =>{
         throw error
     }
 }
+
+/**
+ * GESTOR SALAS: Obtiene una lista de todas las salas/espacios de una asingatura
+ */
+export const fetchEstructuraSalas = async (asignaturaId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/prado/asignaturas/${encodeURIComponent(asignaturaId)}/salas`);        
+        
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.status}`);
+        }
+        return await response.json(); 
+    } catch (error) {
+        console.error(`Error al obtener las salas de la asignatura ${asignaturaId}:`, error);
+        throw error;
+    }
+};
