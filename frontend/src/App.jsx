@@ -2,9 +2,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';  //Para envolver a todas las páginas y mantener el estilo común
 import Inicio from './pages/Inicio';
+import GestorSalas from './pages/GestorSalas';
 
 // TODO: Pantallas provisionales para comprobar que la navegación funciona
-const GestorSalas = () => <div className="border border-bordes p-6 bg-paneles shadow-gris"><h2 className="text-azul-turquesa text-xl mb-4">MÓDULO: GESTOR DE SALAS</h2><p>Árbol de navegación y tablas irán aquí...</p></div>;
 const ProgramadorAvisos = () => <div className='border border-bordes p-6 bg-paneles shadow-gris'><h2 className="text-azul-turquesa text-xl mb-4">MÓDULO: PROGRAMADOR DE AVISOS</h2><p>El formulario para programar avisos en salas irá aquí...</p></div>
 const CronogramaSalas = () => <div className='border border-bordes p-6 bg-paneles shadow-gris'><h2 className='text-azul-turquesa text-xl mb-4'>MÓDULO: CRONOGRAMA DE SALAS</h2><p>El cronograma para gestionar los horarios de uso de las salas irán aquí...</p></div>
 const ControlSanciones = () => <div className='border border-bordes p-6 bg-paneles shadow-gris'><h2 className='text-azul-turquesa text-xl mb-4'>MÓDULO: CONTROL DE SANCIONES </h2><p>El listado de usuarios para controlar las sanciones a estos irá aquí... </p></div>
