@@ -160,9 +160,40 @@ async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends
         }
     }
 
+@router.post("/prado/asignaturas/{asignatura_id}/sincronizar")
 
+@router.get("prado/asignaturas/{asignatura_id}/salas")
+async def get_salas_asignatura(asignatura_id : str, db: Session = Depends(get_db)):
+    """
+    Devuelve todas las salas y espacios de una asignatura a partir de su id
+    """
+
+    salas_db = db.query(SalaAsignatura).filter(SalaAsignatura.id_asignatura_prado == asignatura_id).all()
+
+    if not salas_db:
+       return {
+            "status": "La asignatura no tiene ninguna sala asociada.",
+            "asignatura_id": asignatura_id,
+            "salas": []
+        }
     
+    salas = []
+    for sala in salas_db:
+        salas.append({
 
+            "id": sala.id,
+            "room_id": sala.id_matrix_sala,
+            "nombre": sala.alias_principal,
+            "tipo": sala.tipo.value,
+            "id_padre": sala.id_padre
+        })
+
+    return{
+
+        "status": "success",
+        "asignatura_id": asignatura_id,
+        "salas": salas
+    }
 
 # ==========================================
 # RUTAS DE LA PESTAÑA DE INICIO PERSONALIZADAS
