@@ -34,9 +34,7 @@
     background-size: 100% 4px;
   }
 
-  * {
-    border-radius: 0 !important; /* Quita todos los bordes redondeados en la app*/
-  }
+
 
   /* Barra de scroll personalizada */
   ::-webkit-scrollbar {
