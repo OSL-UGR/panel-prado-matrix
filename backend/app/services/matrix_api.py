@@ -229,19 +229,17 @@ async def arreglar_jerarquia(espacio_raiz_id : str, asignatura_id: str, db: Sess
     """
     Consultamos la jerarquía de un espacio en Matrix para añadir o borrar las salas de nuestra bd según sea necesario.
     """
-
     headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
 
     async with httpx.AsyncClient() as client:
 
-        
+        base_url = settings.MATRIX_URL.split("/_matrix")[0]
         res = await client.get(
-            f"{settings.MATRIX_URL}/v1/rooms/{espacio_raiz_id}/hierarchy",
+            f"{base_url}/_matrix/client/v1/rooms/{espacio_raiz_id}/hierarchy",            
             headers=headers,
         )
 
         if res.status_code != 200:
-
             return {"ERROR":f"Fallo al conectar con Matrix para consultar la estructura de {espacio_raiz_id} : {res.status_code}"}
         
         data = res.json()
@@ -324,4 +322,3 @@ async def arreglar_jerarquia(espacio_raiz_id : str, asignatura_id: str, db: Sess
         except Exception as e:
             db.rollback()
             print("ERROR: Fallo resolviendo las incongruencias entre la Base de datos y el estado de Matrix")
-
