@@ -69,7 +69,7 @@ export default function GestorSalas(){
     </h2>
 
     {/* CARRUSEL DE ASIGNATURAS */}
-    <div className="flex items-center justify-center w-full my-8 gap-4">
+    <div className="flex items-center justify-center w-full my-2 gap-4">
 
         {/* BOTÓN IZQUIERDA */}
         <button 
@@ -80,7 +80,7 @@ export default function GestorSalas(){
         </button>
 
         {/* CONTENEDOR PRINCIPAL CARRUSEL */}
-        <div className="w-full max-w-4xl overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_15%,_black_85%,transparent_100%)]">
+        <div className="w-full max-w-4xl overflow-hidden">
 
             {/* Animaciones*/}
             <style>{`
@@ -109,7 +109,7 @@ export default function GestorSalas(){
             >
 
             {/* TARJETA ANTERIOR */}
-            <div className="w-70 z-10 opacity-40 scale-90">
+            <div className="w-64 z-10 opacity-40 scale-90">
               {asigAnterior ? (
                 <div className="flex flex-col border-2 border-bordes bg-paneles p-4">
                     <div className="absolute inset-0 z-0 opacity-18">
@@ -128,7 +128,7 @@ export default function GestorSalas(){
             </div>
 
             {/* TARJETA INTERMEDIA*/}
-            <div className="w-70 z-10 scale-100">
+            <div className="w-64 z-10 scale-100">
               <div className="flex flex-col border-4 border-azul-turquesa bg-paneles p-4">
                 <div className="absolute inset-0 z-0 opacity-18">
                   <img 
@@ -145,8 +145,8 @@ export default function GestorSalas(){
             </div>
 
             {/* TARJETA SIGUIENTE */}
-            <div className="w-70 z-10 opacity-40 scale-90">
-              {asigAnterior ? (
+            <div className="w-64 z-10 opacity-40 scale-90">
+              {asigSiguiente ? (
                 <div className="flex flex-col border-2 border-bordes bg-paneles p-4">
                     <div className="absolute inset-0 z-0 opacity-18">
                     <img 
@@ -173,6 +173,45 @@ export default function GestorSalas(){
         <p className="font-black text-xl">{">"}</p>
         </button>
     </div>
+
+    {/* ZONA INFERIOR */}
+      <div className=" flex flex-col flex-1">
+        
+        {!asigActual.sincronizada ? (
+          
+          /* Si la asignatura no está sincronizada */
+          <div className="flex-1 border-2 border-dashed border-azul-turquesa/50 bg-azul-turquesa/5 p-8 flex flex-col items-center justify-center text-center gap-6">
+            
+            <div className="flex items-center gap-4">
+              <div className="w-3 h-3 bg-azul-turquesa animate-ping rounded-full"></div>
+              <p className="text-xs text-azul-turquesa tracking-widest border border-azul-turquesa px-3 py-1 shadow-azul">
+                Status // Matrix_Disconnected
+              </p>
+              <div className="w-3 h-3 bg-azul-turquesa animate-ping rounded-full"></div>
+            </div>
+            
+            <h2 className="text-2xl lg:text-3xl text-texto font-bold max-w-2xl leading-relaxed">
+              TODAVÍA NO HEMOS SINCRONIZADO NINGUNA ASIGNATURA. <br />
+              <p className="text-azul-turquesa">¡VAMOS A POR ELLO!</p>
+            </h2>
+            
+            <p className="text-sm text-bordes max-w-xl">
+              Redirígete a la pestaña de [ INICIO ] para sincronizar esta asignatura con un espacio en Matrix
+            </p>
+
+          </div>
+          
+        ) : (
+          
+          /* Si la asignatura está sincronizada */
+        <div className="flex-1 border-4 border-texto bg-fondo p-8 shadow-[8px_8px_0px_var(--color-texto)] min-h-[400px]">
+          <p className="text-texto text-center font-bold tracking-widest animate-pulse mt-12">
+            [ INICIALIZANDO_ESTRUCTURA_DE_NODOS... ]
+          </p>
+        </div>
+          
+        )}
+        </div>
   </div>
   );
 
