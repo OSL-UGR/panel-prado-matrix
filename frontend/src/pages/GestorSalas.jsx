@@ -1,18 +1,20 @@
 import {useState, useEffect} from 'react';
 import { fetchAsignaturasPrado, fetchEstructuraSalas } from '../services/api';
 
-// COmponente para dibujar el arbol
+// Componente para dibujar el árbol
 const NodoArbol = ({ nodo, nivel = 0 }) => {
+  const esEspacio = nodo.tipo === 'espacio';
+  const numHijos = (nodo.hijos?.length || 0) + 1; // Contamos las salas + 1 (el botón de añadir)
+
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col">
       
-      {/* 1. EL NODO ACTUAL */}
-      <div className="flex items-center justify-center py-4">
-        {/* nodos */}
-        <div className="group relative flex flex-col items-center justify-center text-center overflow-hidden border-2 cursor-pointer rounded-full w-40 h-40 border-texto duration-200 hover:border-azul-turquesa hover:shadow-[0_0_20px_var(--color-azul-turquesa)] shrink-0">
+      {/* Nodo principal */}
+      <div className="flex justify-center py-4 px-2">
+        <div className="group relative flex flex-col justify-center text-center overflow-hidden border-2 cursor-pointer rounded-full w-40 h-40 border-texto duration-200 hover:border-azul-turquesa hover:shadow-[0_0_20px_var(--color-azul-turquesa)] bg-paneles z-10">
           
           {/* Imagen de fondo del nodo */}
-          <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
+          <div className="absolute opacity-30 pointer-events-none">
             <img 
               src="https://i.pinimg.com/736x/33/94/81/339481462b4ce55efbcfc74321eb1db1.jpg" 
               alt="Fondo nodo" 
@@ -20,7 +22,7 @@ const NodoArbol = ({ nodo, nivel = 0 }) => {
             />
           </div>
 
-          {/* Textos del nodo*/}
+          {/* Textos del nodo */}
           <span className="relative z-10 font-bold tracking-widest text-sm text-texto duration-200 group-hover:text-azul-turquesa">
             {nodo.nombre}
           </span>
@@ -30,33 +32,61 @@ const NodoArbol = ({ nodo, nivel = 0 }) => {
         </div>
       </div>
 
-      {/* Separamos los nodos por un alinea fina gris */}
-      <div className="flex items-start justify-center gap-8 pt-4 border-t border-bordes/30 w-full min-w-full">
-        
-        {/*Cargamos todos los hijos*/}
-        {nodo.hijos?.map((hijo) => (
-          <NodoArbol key={hijo.id} nodo={hijo} nivel={nivel + 1} />
-        ))}
+      {/* jerarquía de líneas e hijos*/}
+      {esEspacio && (
+        <div className="relative flex justify-center pt-8 mt-2">
+          
+          {/* Tronco que baja del padre */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-8 bg-bordes/50"></div>
 
-        {/* nodo para añadir */}
-        <div className="flex flex-col items-center">
-          <div className="flex items-center justify-center py-4">
-            <div 
-              className="group flex flex-col items-center justify-center text-center border-2 border-dashed cursor-pointer rounded-full w-40 h-40 border-bordes duration-200 hover:border-texto"
-              onClick={() => console.log('Añadir nueva sala colgando de:', nodo.room_id)}
-            >
-              <span className="font-black text-4xl text-bordes duration-200 group-hover:text-texto">
-                +
-              </span>
-              <span className="text-[10px] text-bordes tracking-widest mt-2  duration-200 group-hover:text-texto">
-                Nueva Sala
-              </span>
+          {/* Cargamos todos los hijos */}
+          {nodo.hijos?.map((hijo, index) => {
+            const isFirst = index === 0;
+            return (
+              <div key={hijo.id} className="relative flex flex-col pt-8 px-1">
+                
+                {/* Linea horizontal: Si hay más de 1 elemento, dibujamos la línea. Si es el primero, va de la mitad a la derecha. Si es del medio, completa. */}
+                {numHijos > 1 && (
+                  <div className={`absolute top-0 h-px bg-bordes/50 ${isFirst ? 'left-1/2 right-0' : 'left-0 right-0'}`}></div>
+                )}
+                
+                {/* Rama vertical que baja hacia el hijo concreo */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-8 bg-bordes/50"></div>
+
+                {/* Pintamos el hijo con recursividad*/}
+                <NodoArbol nodo={hijo} nivel={nivel + 1} />
+              </div>
+            );
+          })}
+
+          {/* 3El nodo de añadir es el último */}
+          <div className="relative flex flex-col pt-8 px-1">
+            
+            {/* Línea horizontal*/}
+            {numHijos > 1 && (
+              <div className="absolute top-0 left-0 right-1/2 h-px bg-bordes/50"></div>
+            )}
+            
+            {/* Rama vertical que baja hacia el botón de añadir */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-8 bg-bordes/50"></div>
+
+            <div className="flex items-center justify-center py-4">
+              <div 
+                className="group flex flex-col items-center justify-center text-center border-2 border-dashed cursor-pointer rounded-full w-40 h-40 border-bordes duration-200 hover:border-texto hover:bg-bordes/10 z-10 bg-fondo"
+                onClick={() => console.log('Añadir nueva sala colgando de:', nodo.room_id)}
+              >
+                <span className="font-black text-4xl text-bordes duration-200 group-hover:text-texto">
+                  +
+                </span>
+                <span className="text-[10px] text-bordes tracking-widest mt-2 uppercase duration-200 group-hover:text-texto">
+                  Nueva Sala
+                </span>
+              </div>
             </div>
           </div>
+
         </div>
-
-      </div>
-
+      )}
     </div>
   );
 };
