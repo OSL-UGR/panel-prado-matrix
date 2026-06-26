@@ -70,10 +70,11 @@ export default function GestorSalas(){
 
     {/* CARRUSEL DE ASIGNATURAS */}
     <div className="flex items-center justify-center w-full my-8 gap-4">
+
         {/* BOTÓN IZQUIERDA */}
         <button 
             onClick={irAnterior}
-            className="w-12 h-12 border-4 bg-paneles border-texto text-texto hover:border-azul-turquesa hover:text-azul-turquesa cursor-pointer"
+            className="w-12 h-12 m-4 border-4 bg-paneles border-texto text-texto hover:border-azul-turquesa hover:text-azul-turquesa cursor-pointer"
             >
         <p className="font-black text-xl">{"<"}</p>
         </button>
@@ -167,7 +168,7 @@ export default function GestorSalas(){
         {/* BOTÓN DERECHA */}
         <button 
             onClick={irSiguiente}
-            className="w-12 h-12 border-4 bg-paneles border-texto text-texto hover:border-azul-turquesa hover:text-azul-turquesa cursor-pointer"
+            className="w-12 h-12 m-4 border-4 bg-paneles border-texto text-texto hover:border-azul-turquesa hover:text-azul-turquesa cursor-pointer"
         >
         <p className="font-black text-xl">{">"}</p>
         </button>
