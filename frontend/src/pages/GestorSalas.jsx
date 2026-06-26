@@ -73,7 +73,7 @@ export default function GestorSalas(){
         {/* BOTÓN IZQUIERDA */}
         <button 
             onClick={irAnterior}
-            className="w-12 h-12 border-4 bg-paneles border-texto text-texto hover:border-azul-turquesa hover:text-azul-turquesa"
+            className="w-12 h-12 border-4 bg-paneles border-texto text-texto hover:border-azul-turquesa hover:text-azul-turquesa cursor-pointer"
             >
         <p className="font-black text-xl">{"<"}</p>
         </button>
@@ -81,12 +81,93 @@ export default function GestorSalas(){
         {/* CONTENEDOR PRINCIPAL CARRUSEL */}
         <div className="w-full max-w-4xl overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_15%,_black_85%,transparent_100%)]">
 
-            
+            {/* Animaciones*/}
+            <style>{`
+            @keyframes slideDesdeDerecha {
+              0% { transform: translateX(320px) scale(0.95); opacity: 0.4; }
+              100% { transform: translateX(0) scale(1); opacity: 1; }
+            }
+            @keyframes slideDesdeIzquierda {
+              0% { transform: translateX(-320px) scale(0.95); opacity: 0.4; }
+              100% { transform: translateX(0) scale(1); opacity: 1; }
+            }
+            .anim-slide-der { 
+              animation: slideDesdeDerecha 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; 
+            }
+            .anim-slide-izq { 
+              animation: slideDesdeIzquierda 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; 
+            }
+          `}</style>
+
+            <div
+              key={activaIndex}
+              className={`flex items-center justify-center gap-6 py-4 ${
+                direccion === 'der' ? 'anim-slide-der' : 
+                direccion === 'izq' ? 'anim-slide-izq' : ''
+              }`}
+            >
+
+            {/* TARJETA ANTERIOR */}
+            <div className="w-70 z-10 opacity-40 scale-90">
+              {asigAnterior ? (
+                <div className="flex flex-col border-2 border-bordes bg-paneles p-4">
+                    <div className="absolute inset-0 z-0 opacity-18">
+                    <img 
+                        src="https://i.pinimg.com/736x/2f/69/6f/2f696f5ae5c19160760e999184772cf5.jpg" 
+                        alt="Imagen fondo tarjetas" 
+                        className="w-full h-full object-cover" 
+                    />
+                    </div>
+                  <span className="text-texto font-black truncate">{asigAnterior.nombre}</span>
+                  <span className="text-xs text-bordes tracking-widest">ID_PRADO: #{asigAnterior.id} | {asigAnterior.usuarios} Usuarios</span>
+                </div>
+              ) : (
+                <div className="w-full h-24 border-2 border-dashed border-bordes/20"></div> 
+              )}
+            </div>
+
+            {/* TARJETA INTERMEDIA*/}
+            <div className="w-70 z-10 scale-100">
+              <div className="flex flex-col border-4 border-azul-turquesa bg-paneles p-4">
+                <div className="absolute inset-0 z-0 opacity-18">
+                  <img 
+                    src="https://i.pinimg.com/736x/2f/69/6f/2f696f5ae5c19160760e999184772cf5.jpg" 
+                    alt="Imagen fondo tarjetas" 
+                    className="w-full h-full object-cover" 
+                  />
+                </div>
+                <span className="text-texto font-black truncate">{asigActual.nombre}</span>
+                <span className="text-xs text-bordes mt-2 font-bold tracking-widest">
+                  ID: #{asigActual.id} | USR: {asigActual.usuarios}
+                </span>
+              </div>
+            </div>
+
+            {/* TARJETA SIGUIENTE */}
+            <div className="w-70 z-10 opacity-40 scale-90">
+              {asigAnterior ? (
+                <div className="flex flex-col border-2 border-bordes bg-paneles p-4">
+                    <div className="absolute inset-0 z-0 opacity-18">
+                    <img 
+                        src="https://i.pinimg.com/736x/2f/69/6f/2f696f5ae5c19160760e999184772cf5.jpg" 
+                        alt="Imagen fondo tarjetas" 
+                        className="w-full h-full object-cover" 
+                    />
+                    </div>
+                  <span className="text-texto font-black truncate">{asigSiguiente.nombre}</span>
+                  <span className="text-xs text-bordes tracking-widest">ID_PRADO: #{asigSiguiente.id} | {asigSiguiente.usuarios} Usuarios</span>
+                </div>
+              ) : (
+                <div className="w-full h-24 border-2 border-dashed border-bordes/20"></div> 
+              )}
+            </div>
+
+          </div>
         </div>
         {/* BOTÓN DERECHA */}
         <button 
             onClick={irSiguiente}
-            className="w-12 h-12 border-4 bg-paneles border-texto text-texto hover:border-azul-turquesa hover:text-azul-turquesa"
+            className="w-12 h-12 border-4 bg-paneles border-texto text-texto hover:border-azul-turquesa hover:text-azul-turquesa cursor-pointer"
         >
         <p className="font-black text-xl">{">"}</p>
         </button>
