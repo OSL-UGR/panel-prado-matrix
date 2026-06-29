@@ -1,8 +1,8 @@
 import {useState, useEffect} from 'react';
-import { fetchAsignaturasPrado, fetchEstructuraSalas } from '../services/api';
+import { fetchAsignaturasPrado, fetchEstructuraSalas, fetchCrearSala} from '../services/api';
 
 // Componente para dibujar el árbol
-const NodoArbol = ({ nodo, nivel = 0 }) => {
+const NodoArbol = ({ nodo, nivel = 0 , onAbrirModal}) => {
   const esEspacio = nodo.tipo === 'espacio';
   const numHijos = (nodo.hijos?.length || 0) + 1; // Contamos las salas + 1 (el botón de añadir)
 
@@ -76,7 +76,7 @@ const NodoArbol = ({ nodo, nivel = 0 }) => {
             <div className="flex items-center justify-center">
               <div 
                 className="group relative flex flex-col justify-center text-center overflow-hidden border-2 cursor-pointer rounded-full w-40 h-40 border-texto duration-200 hover:border-azul-turquesa hover:shadow-[0_0_20px_var(--color-azul-turquesa)] bg-paneles z-10"
-                onClick={() => console.log('Añadir nueva sala colgando de:', nodo.room_id)}
+                onClick={() => onAbrirModal(nodo.room_id)}
               >
                 <span className="relative z-10 font-bold tracking-widest text-4xl text-texto duration-200 group-hover:text-azul-turquesa">
                   +
@@ -102,6 +102,10 @@ export default function GestorSalas(){
     const [salas, setSalas] = useState([]);
     const [cargandoSalas, setCargandoSalas] = useState(false);
 
+    const [modalConfig, setModalConfig] = useState({ abierto: false, id_padre: null });
+    const [formSala, setFormSala] = useState({ nombre: '', descripcion: '', tipo: 'sala', auto_añadir: false });
+    const [enviandoSala, setEnviandoSala] = useState(false);
+
 
     // 1. Use effect para cargar las asingaturas del profesor
     useEffect(() => {
@@ -118,6 +122,18 @@ export default function GestorSalas(){
         init();
     }, []);
 
+    // Función auxiliar para cargar la estructura de salas de una asignatura
+    const cargarEstructura = async (asignaturaId) => {
+      try {
+          const respuesta = await fetchEstructuraSalas(asignaturaId);
+          setSalas(respuesta.salas || []);
+      } catch (error) {
+          console.error("Error cargando estructura de salas:", error);
+      } finally {
+          setCargandoSalas(false);
+      }
+    };
+
     // 2. Use effect para pedir la estructura de salas de la asignatura dada
     useEffect(() => {
 
@@ -127,25 +143,37 @@ export default function GestorSalas(){
 
         // Cargamos el arbol de la asignatura si esta sincronizada
         if (asigActual && asigActual.sincronizada){
-
-                const cargarSalas = async () => {
-
-                setCargandoSalas(true);
-                try {
-
-                    const respuesta = await fetchEstructuraSalas(asigActual.id);
-                    setSalas(respuesta.salas || []);
-                } catch (error) {
-
-                    console.error("Error cargando estructura de salas:", error);
-                } finally {
-
-                    setCargandoSalas(false);
-                }
-            };
-            cargarSalas();
+            cargarEstructura(asigActual.id);
         }
     }, [activaIndex, asignaturas]);
+
+    // Función para el envío del formulario del modal
+    const handleSubmitNuevaSala = async (e) => {
+        e.preventDefault();
+        setEnviandoSala(true);
+        const asigActual = asignaturas[activaIndex];
+
+        try {
+            // Mandamos a FastAPI
+            await fetchCrearSala(asigActual.id, {
+                nombre: formSala.nombre,
+                descripcion: formSala.descripcion,
+                tipo: formSala.tipo,
+                id_padre: modalConfig.id_padre,
+                auto_añadir: formSala.auto_añadir
+            });
+
+            // Si ha ido bien, cerramos modal, limpiamos formulario y recargamos el árbol
+            setModalConfig({ abierto: false, id_padre: null });
+            setFormSala({ nombre: '', descripcion: '', tipo: 'sala', auto_añadir: false });
+            cargarEstructura(asigActual.id); // ¡Refresco del árbol!
+
+        } catch (error) {
+            alert("Error al crear la sala: " + error.message);
+        } finally {
+            setEnviandoSala(false);
+        }
+    };
 
     const construirArbol = (lista) =>{
         const mapa = {};
@@ -172,12 +200,14 @@ export default function GestorSalas(){
         setDireccion('izq');
         setActivaIndex((prev) => (prev === 0 ? asignaturas.length - 1 : prev - 1));
         setSalas([]);   // Limpiamos el arbol visual
+        setCargandoSalas(true); // Cargamos las salas
     };
 
     const irSiguiente = () => {
         setDireccion('der');
         setActivaIndex((prev) => (prev === asignaturas.length - 1 ? 0 : prev + 1));
         setSalas([]);   // Limpiamos el arbol visual
+        setCargandoSalas(true); // Cargamos las salas
 
     };
 
@@ -205,6 +235,89 @@ export default function GestorSalas(){
 
   return( 
   <div className="flex flex-col gap-8 font-mono min-h-full p-4">
+
+    {/* NUEVO: EL MODAL EMERGENTE */}
+    {modalConfig.abierto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="border-4 border-texto bg-fondo w-full max-w-lg p-8 shadow-[0_0_30px_rgba(0,255,204,0.1)]">
+                <h3 className="text-2xl text-texto font-black tracking-widest border-b-2 border-bordes/50 pb-4 mb-6">
+                    [ CREAR_NUEVO_NODO ]
+                </h3>
+                
+                <form onSubmit={handleSubmitNuevaSala} className="flex flex-col gap-6">
+                    {/* Input: Nombre */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-azul-turquesa tracking-widest">NOMBRE_DE_SALA</label>
+                        <input 
+                            required
+                            type="text" 
+                            className="bg-paneles border-2 border-bordes p-3 text-texto outline-none focus:border-azul-turquesa"
+                            value={formSala.nombre}
+                            onChange={(e) => setFormSala({...formSala, nombre: e.target.value})}
+                        />
+                    </div>
+
+                    {/* Input: Descripción */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-azul-turquesa tracking-widest">DESCRIPCIÓN / TOPIC</label>
+                        <input 
+                            required
+                            type="text" 
+                            className="bg-paneles border-2 border-bordes p-3 text-texto outline-none focus:border-azul-turquesa"
+                            value={formSala.descripcion}
+                            onChange={(e) => setFormSala({...formSala, descripcion: e.target.value})}
+                        />
+                    </div>
+
+                    {/* Select: Tipo */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-azul-turquesa tracking-widest">TIPO_DE_NODO</label>
+                        <select 
+                            className="bg-paneles border-2 border-bordes p-3 text-texto outline-none focus:border-azul-turquesa cursor-pointer"
+                            value={formSala.tipo}
+                            onChange={(e) => setFormSala({...formSala, tipo: e.target.value})}
+                        >
+                            <option value="sala">SALA (Chat Normal)</option>
+                            <option value="espacio">ESPACIO (Contenedor de Salas)</option>
+                            <option value="sala_avisos">SALA_DE_AVISOS (Solo lectura)</option>
+                        </select>
+                    </div>
+
+                    {/* Checkbox: Matriculación */}
+                    <div className="flex items-center gap-4 mt-2">
+                        <input 
+                            type="checkbox" 
+                            id="auto_añadir"
+                            className="w-5 h-5 accent-azul-turquesa cursor-pointer"
+                            checked={formSala.auto_añadir}
+                            onChange={(e) => setFormSala({...formSala, auto_añadir: e.target.checked})}
+                        />
+                        <label htmlFor="auto_añadir" className="text-sm text-texto cursor-pointer select-none">
+                            Forzar matriculación automática de alumnos
+                        </label>
+                    </div>
+
+                    {/* Botones de acción */}
+                    <div className="flex justify-end gap-4 mt-4 pt-4 border-t border-bordes/50">
+                        <button 
+                            type="button"
+                            onClick={() => setModalConfig({ abierto: false, id_padre: null })}
+                            className="px-6 py-2 border-2 border-bordes text-bordes hover:text-texto hover:border-texto font-bold tracking-widest transition-colors"
+                        >
+                            CANCELAR
+                        </button>
+                        <button 
+                            type="submit"
+                            disabled={enviandoSala}
+                            className="px-6 py-2 border-2 border-azul-turquesa text-azul-turquesa hover:bg-azul-turquesa hover:text-fondo font-bold tracking-widest transition-colors disabled:opacity-50"
+                        >
+                            {enviandoSala ? 'EJECUTANDO...' : 'INICIALIZAR_NODO'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )}
     {/* TÍTULO */}
     <h2 className="text-3xl text-texto font-black  tracking-widest border-b-4 border-texto pb-4 ]">
         [ TU_ARBOL_DE_SALAS ]
@@ -368,7 +481,7 @@ export default function GestorSalas(){
               ) : (
                 <div className="min-w-max">
                   {arbolSalas.map((raiz) => (
-                    <NodoArbol key={raiz.id} nodo={raiz} />
+                    <NodoArbol key={raiz.id} nodo={raiz} onAbrirModal={(idPadre) => setModalConfig({ abierto: true, id_padre: idPadre })} />
                   ))}
                 </div>
               )}
