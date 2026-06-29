@@ -14,9 +14,12 @@ const NodoArbol = ({ nodo, nivel = 0 }) => {
         <div className="group relative flex flex-col justify-center text-center overflow-hidden border-2 cursor-pointer rounded-full w-40 h-40 border-texto duration-200 hover:border-azul-turquesa hover:shadow-[0_0_20px_var(--color-azul-turquesa)] bg-paneles z-10">
           
           {/* Imagen de fondo del nodo */}
-          <div className="absolute opacity-30 pointer-events-none">
+          <div className="absolute opacity-50 pointer-events-none">
             <img 
-              src="https://i.pinimg.com/736x/33/94/81/339481462b4ce55efbcfc74321eb1db1.jpg" 
+              src={esEspacio 
+                ? "https://i.pinimg.com/736x/cb/25/1b/cb251b7b8ab7be51f69067da26770afb.jpg" //Si es un espacio
+                : "https://i.pinimg.com/736x/fd/0a/88/fd0a886a160facf6c2de40b690019a36.jpg" //Si es una sala
+              }
               alt="Fondo nodo" 
               className="w-full h-full object-cover" 
             />
@@ -342,23 +345,34 @@ export default function GestorSalas(){
           
 ) : (
           /* Si la asignatura está sincronizada */
-          <div className="flex-1 border-4 border-texto bg-fondo p-8">
-            {cargandoSalas ? (
+          <div className="border-4 border-texto bg-fondo  relative">
+            <div className="absolute inset-0 opacity-25 pointer-events-none">
+              {/* Imagen para el fondo*/}
+              <img 
+                src="https://i.pinimg.com/736x/c6/e5/5d/c6e55deb95d37b0be10290c0b2970a15.jpg" 
+                alt="Fondo seccion arbol" 
+                className="w-full h-full object-cover" 
+              />
+            </div>
+            <div className="relative z-10 p-8 min-h-full overflow-x-auto">
+              {cargandoSalas ? (
 
-              <p className="text-texto text-center font-bold tracking-widest mt-12">
-                [ LEYENDO_JERARQUÍA_MATRIX_DE_SALAS... ]
-              </p>
-            ) : arbolSalas.length === 0 ? (
+                <p className="text-texto text-center font-bold tracking-widest mt-12">
+                  [ LEYENDO_JERARQUÍA_MATRIX_DE_SALAS... ]
+                </p>
+              ) : arbolSalas.length === 0 ? (
 
-              <div className="text-texto text-center font-bold tracking-widest mt-12">
-                [ NO_SE_HAN_ENCONTRADO_NODOS_EN_TU_JERARQUÍA_DE_SALAS ]
-              </div>
-            ) : (
-
-              arbolSalas.map((raiz) => (
-                <NodoArbol key={raiz.id} nodo={raiz} />
-              ))
-            )}
+                <div className="text-texto text-center font-bold tracking-widest mt-12">
+                  [ NO_SE_HAN_ENCONTRADO_NODOS_EN_TU_JERARQUÍA_DE_SALAS ]
+                </div>
+              ) : (
+                <div className="min-w-max">
+                  {arbolSalas.map((raiz) => (
+                    <NodoArbol key={raiz.id} nodo={raiz} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           
         )}
