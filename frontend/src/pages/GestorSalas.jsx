@@ -10,7 +10,7 @@ const NodoArbol = ({ nodo, nivel = 0 }) => {
     <div className="flex flex-col">
       
       {/* Nodo principal */}
-      <div className="flex justify-center py-4 px-2">
+      <div className="flex justify-center ">
         <div className="group relative flex flex-col justify-center text-center overflow-hidden border-2 cursor-pointer rounded-full w-40 h-40 border-texto duration-200 hover:border-azul-turquesa hover:shadow-[0_0_20px_var(--color-azul-turquesa)] bg-paneles z-10">
           
           {/* Imagen de fondo del nodo */}
@@ -73,15 +73,15 @@ const NodoArbol = ({ nodo, nivel = 0 }) => {
             {/* Rama vertical que baja hacia el botón de añadir */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-8 bg-bordes/50"></div>
 
-            <div className="flex items-center justify-center py-4">
+            <div className="flex items-center justify-center">
               <div 
-                className="group flex flex-col items-center justify-center text-center border-2 border-dashed cursor-pointer rounded-full w-40 h-40 border-bordes duration-200 hover:border-texto hover:bg-bordes/10 z-10 bg-fondo"
+                className="group relative flex flex-col justify-center text-center overflow-hidden border-2 cursor-pointer rounded-full w-40 h-40 border-texto duration-200 hover:border-azul-turquesa hover:shadow-[0_0_20px_var(--color-azul-turquesa)] bg-paneles z-10"
                 onClick={() => console.log('Añadir nueva sala colgando de:', nodo.room_id)}
               >
-                <span className="font-black text-4xl text-bordes duration-200 group-hover:text-texto">
+                <span className="relative z-10 font-bold tracking-widest text-4xl text-texto duration-200 group-hover:text-azul-turquesa">
                   +
                 </span>
-                <span className="text-[10px] text-bordes tracking-widest mt-2 uppercase duration-200 group-hover:text-texto">
+                <span className="relative z-10 text-[10px] text-bordes tracking-widest mt-1">
                   Nueva Sala
                 </span>
               </div>

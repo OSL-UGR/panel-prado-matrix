@@ -118,3 +118,33 @@ export const fetchEstructuraSalas = async (asignaturaId) => {
         throw error;
     }
 };
+
+/**
+ * GESTOR SALAS: Crea un nuevo nodo (espacio, sala o sala de avisos) colgando de un padre (raíz o subespacio) (POST)
+ */
+
+export const fetchCrearSala = async (asignaturaId,datosNodo) =>{
+    try{
+        const response = await fetch(`${API_BASE_URL}/prado/asignaturas/${encodeURIComponent(asignaturaId)}/salas`,{
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json'
+            },
+            // Convertimos el objeto de los cuestionarios de react al JSON que espera nuestro backend
+            body: JSON.stringify(datosNodo)
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || `Error en la petición: ${response.status}`);
+        }
+        
+        return await response.json();
+    }
+    catch (error) {
+
+        console.error(`Error al crear la sala de la asignatura ${asignaturaId}`, error);
+        throw error
+    }
+
+}
