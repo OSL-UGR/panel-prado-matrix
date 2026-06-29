@@ -143,8 +143,8 @@ export default function Inicio() {
           {/* Tarjeta Matrix 1 */}
           <div className="border border-bordes bg-paneles p-5 shadow-gris flex justify-between items-center relative overflow-hidden">
             <div className="z-10">
-              <div className="text-lg text-azul-turquesa font-bold">Espacios de Matrix</div>
-              <div className="text-[10px] text-bordes mt-1 tracking-wider max-w-[200px]">Espacios creados en Matrix para tus clases.</div>
+              <div className="text-lg text-azul-turquesa font-bold">Salas de Matrix</div>
+              <div className="text-[10px] text-bordes mt-1 tracking-wider max-w-[200px]">Salas/Espacios creados en Matrix para tus clases.</div>
             </div>
             <div className="text-5xl font-black text-azul-turquesa z-10">{stats?.matrix?.salas ?? 0}</div>
           </div>

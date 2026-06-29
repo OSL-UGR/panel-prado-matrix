@@ -322,3 +322,84 @@ async def arreglar_jerarquia(espacio_raiz_id : str, asignatura_id: str, db: Sess
         except Exception as e:
             db.rollback()
             print("ERROR: Fallo resolviendo las incongruencias entre la Base de datos y el estado de Matrix")
+
+async def crear_nodo(nombre: str, descripcion:str, tipo: str, id_padre: str, id_profesor: str):
+    """
+    Crea una nueva sala/espacio según lo especificado, añadiendo nodos a la jerarquía de una asignatura.
+    """
+
+    headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
+
+    # Necesitamos el dominio del servidor (Ej: matrix.ugr.es) no nos vale la url entera.
+    dominio_matrix = settings.MATRIX_URL.split("//")[1].split("/")[0]
+
+    # Creamos el payload_base para crer los tipos de salas, especificando los permisos y el id del espacio padre
+    payload_base = {
+        "name": nombre,
+        "topic": descripcion,
+        "initial_state": [
+            {
+                "type": "m.room.join_rules",
+                "state_key": "",
+                "content": {
+                    "join_rule": "restricted",
+                    "allow": [
+                        {
+                            "type": "m.room_membership",
+                            "room_id": id_padre 
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+
+    # Añadimos los parámetros al payload según el tipo de el tipo de sala que queramos crear
+
+    if tipo == TipoSala.espacio.value:
+        payload_base["creation_content"] = {
+
+            "type": "m.space",
+            "m.deferate": False
+        }
+    # Para escribir necesitarán de permisos mínimos con nivel 50
+    elif tipo == TipoSala.sala_avisos.value:
+        payload_base["power_level_content_override"] = {
+            "event_default": 50,
+            "users": {id_profesor: 100}
+        }
+
+    async with httpx.AsyncClient() as client:
+
+        # 1 Creamos la sala/espacio
+        res_crear = await client.post(
+
+            f"{settings.MATRIX_URL}/createRoom",
+            headers=headers,
+            json=payload_base
+        )
+
+        if res_crear.status_code != 200:
+            return {"ERROR": f"Fallo al crear el nodo en Matrix: {res_crear.status_code} - {res_crear.text}"}
+        
+        nuevo_room_id = res_crear.json().get("room_id")
+        
+        # 2 Lo vinculamos con el espacio del padre
+
+        res_vinculo = await client.put(
+
+            f"{settings.MATRIX_URL}/rooms/{id_padre}/state/m.space.child/{nuevo_room_id}",
+            headers=headers,
+            json={"via": [dominio_matrix]}
+        )
+
+        if res_vinculo.status_code != 200:
+            return  {"ERROR": f"Sala creada con id {nuevo_room_id} pero fallo al vincularse con el espacio padre: {id_padre}: {res_vinculo.status_code}"}
+        
+        return {
+
+            "status": "success",
+            "room_id": nuevo_room_id,
+            "tipo": tipo
+            }
+    

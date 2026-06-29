@@ -6,6 +6,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db # Obteenemos la base de datos
+from pydantic import BaseModel # Para definir models de cara a los cuestionarios
 
 from app.models.sala_asignaturas import SalaAsignatura
 from app.models.usuarios import Usuario
@@ -18,7 +19,8 @@ from app.services.matrix_api import(
     registrar_usuarios_matrix,
     crear_espacio_asignatura,
     insertar_alumnos_sala,
-    arreglar_jerarquia
+    arreglar_jerarquia,
+    crear_nodo
 )
 
 from app.services.prado_api import(
@@ -32,6 +34,16 @@ from app.services.prado_api import(
 # Importamos el usuario activo de nuestro Mock de Prado
 # TODO: esto habrá que actualizarlo con las variables de sesión de prado
 from app.mocks.prado_db import PROFESOR
+
+# ==========================================
+# MODELOS DE DATOS 
+# ==========================================
+class CrearNodoRequest(BaseModel):
+    nombre: str
+    descripcion: str
+    tipo: str
+    id_padre: str
+    auto_añadir: bool = False
 
 router = APIRouter() # Lo que hace es crear un grupo de rutas. En el main tendremos que incluirlo "app.include_router(router)"
 
@@ -199,6 +211,67 @@ async def get_salas_asignatura(asignatura_id : str, db: Session = Depends(get_db
         "status": "success",
         "asignatura_id": asignatura_id,
         "salas": salas
+    }
+
+@router.post("/prado/asignaturas/{asignatura_id}/salas")
+async def crear_sala(asignatura_id: str, datos: CrearNodoRequest, db: Session = Depends(get_db)):
+    """
+    Recibe los datos del cuestionario del front, crea el nodo especificado en Matrix, 
+    lo vincula a su nodo padre y lo matricula a los alumnos si se solicita.
+    """
+    
+    profesor_id = PROFESOR["matrix_id"]
+
+    # 1. Llamamos a Matrix para crear y vincular la sala
+    res_crear = await crear_nodo(
+        nombre=datos.nombre,
+        descripcion=datos.descripcion,
+        tipo=datos.tipo,
+        id_padre=datos.id_padre,
+        id_profesor=profesor_id
+    )
+
+    if "ERROR" in res_crear:
+        raise HTTPException(status_code=500, detail=res_crear["ERROR"])
+    
+    nuevo_room_id = res_crear["room_id"]
+    alumnos_añadidos = 0
+
+    # 2. Si el profesor marcó "Sí" en añadir automáticamente a los alumnos
+    if datos.auto_añadir:
+        info_asignatura = await obtener_alumnos_prado_service(asignatura_id)
+        
+        if not info_asignatura.get("error"):
+            usuarios_asignatura = info_asignatura["usuarios_matriculados"]
+            ids_alumnos = [u["matrix_id"] for u in usuarios_asignatura if u["matrix_id"] != profesor_id]
+            
+            # Reutilizamos tu función de inyección de Synapse
+            res_insertar = await insertar_alumnos_sala(nuevo_room_id, ids_alumnos)
+            alumnos_añadidos = len(res_insertar.get("id_alumnos_matriculados", []))
+            
+            if len(res_insertar.get("errores", [])) > 0:
+                print(f"Advertencias al auto-matricular en nueva sala: {res_insertar['errores']}")
+
+    # 3. Sincronizar nuestra base de datos local (PostgreSQL)
+    # Como Matrix es la fuente de verdad, simplemente buscamos la raíz y forzamos un arreglar_jerarquia
+    espacio_raiz = db.query(SalaAsignatura).filter(
+        SalaAsignatura.id_asignatura_prado == asignatura_id,
+        SalaAsignatura.id_padre == None
+    ).first()
+
+    if espacio_raiz:
+        await arreglar_jerarquia(espacio_raiz.id_matrix_sala, asignatura_id, db)
+    else:
+        # Fallback de seguridad por si falla la búsqueda de la raíz
+        raise HTTPException(status_code=404, detail="No se encontró el espacio raíz de la asignatura para sincronizar.")
+
+    # 4. Respuesta al Frontend
+    return {
+        "status": "success",
+        "mensaje": "Nodo creado y jerarquía actualizada correctamente.",
+        "room_id": nuevo_room_id,
+        "tipo": datos.tipo,
+        "alumnos_auto_añadidos": alumnos_añadidos
     }
 
 # ==========================================
