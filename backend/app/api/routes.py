@@ -219,7 +219,7 @@ async def crear_sala(asignatura_id: str, datos: CrearNodoRequest, db: Session = 
     Recibe los datos del cuestionario del front, crea el nodo especificado en Matrix, 
     lo vincula a su nodo padre y lo matricula a los alumnos si se solicita.
     """
-    
+
     profesor_id = PROFESOR["matrix_id"]
 
     # 1. Llamamos a Matrix para crear y vincular la sala
@@ -237,42 +237,49 @@ async def crear_sala(asignatura_id: str, datos: CrearNodoRequest, db: Session = 
     nuevo_room_id = res_crear["room_id"]
     alumnos_añadidos = 0
 
-    # 2. Si el profesor marcó "Sí" en añadir automáticamente a los alumnos
+    # SI decidió matricularlos tenemos que insertarlos a mano
     if datos.auto_añadir:
-        info_asignatura = await obtener_alumnos_prado_service(asignatura_id)
-        
-        if not info_asignatura.get("error"):
-            usuarios_asignatura = info_asignatura["usuarios_matriculados"]
-            ids_alumnos = [u["matrix_id"] for u in usuarios_asignatura if u["matrix_id"] != profesor_id]
-            
-            # Reutilizamos tu función de inyección de Synapse
-            res_insertar = await insertar_alumnos_sala(nuevo_room_id, ids_alumnos)
-            alumnos_añadidos = len(res_insertar.get("id_alumnos_matriculados", []))
-            
-            if len(res_insertar.get("errores", [])) > 0:
-                print(f"Advertencias al auto-matricular en nueva sala: {res_insertar['errores']}")
 
-    # 3. Sincronizar nuestra base de datos local (PostgreSQL)
-    # Como Matrix es la fuente de verdad, simplemente buscamos la raíz y forzamos un arreglar_jerarquia
-    espacio_raiz = db.query(SalaAsignatura).filter(
+        info_asignatura = await obtener_alumnos_prado_service(asignatura_id)
+
+        if not info_asignatura.get("error"):
+
+            # Obtenemos los nombres de usuarios e ids a insertar
+
+            usuarios_asignatura = info_asignatura["usuarios_matriculados"]
+            ids_alumnos = []
+
+            for usuario in usuarios_asignatura:
+                if usuario["matrix_id"] != profesor_id:
+                    ids_alumnos.append(usuario["matrix_id"])
+
+        # Matriculamos e insertamos a todos los alumnos de la asignatura de Prado en la sala que acabamos de crar
+        res_insertar_alumnos = await insertar_alumnos_sala(nuevo_room_id, ids_alumnos)
+        alumnos_añadidos = len(res_insertar_alumnos.get("id_alumnos_matriculados", []))
+        
+        if len(res_insertar_alumnos["errores"]) > 0:
+            print(f"Advertencias al matricular alumnos: {res_insertar_alumnos['errores']}")
+
+    # Sincronizamos los cambios con la bd
+
+    espacio_raiz = db.query(SalaAsignatura).filter( # Buscamos el espacio raiz de la asignatura
         SalaAsignatura.id_asignatura_prado == asignatura_id,
         SalaAsignatura.id_padre == None
     ).first()
 
+    # Una vez encontramos la raiz añadimos la sala creada
     if espacio_raiz:
         await arreglar_jerarquia(espacio_raiz.id_matrix_sala, asignatura_id, db)
     else:
-        # Fallback de seguridad por si falla la búsqueda de la raíz
-        raise HTTPException(status_code=404, detail="No se encontró el espacio raíz de la asignatura para sincronizar.")
-
-    # 4. Respuesta al Frontend
+        raise HTTPException(status_code=404, detail="ERROR: No se encontró el espacio raíz de la asignatura para añadir los cambios a la bd.")
+        
     return {
         "status": "success",
-        "mensaje": "Nodo creado y jerarquía actualizada correctamente.",
         "room_id": nuevo_room_id,
         "tipo": datos.tipo,
         "alumnos_auto_añadidos": alumnos_añadidos
     }
+
 
 # ==========================================
 # RUTAS DE LA PESTAÑA DE INICIO PERSONALIZADAS
