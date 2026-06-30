@@ -317,6 +317,33 @@ async def modificar_sala(asignatura_id: str, room_id: str, datos: EditarNodoRequ
     db.commit()
 
     return {"status": "success"}
+
+@router.delete("/prado/asignaturas/{asignatura_id}/salas/{room_id}")
+async def borrar_sala(asignatura_id: str, room_id: str, db: Session = Depends(get_db)):
+
+    #Obtenemos la sala de la bd 
+    sala_bd = db.query(SalaAsignatura).filter(SalaAsignatura.id_matrix_sala == room_id, SalaAsignatura.id_asignatura_prado == asignatura_id).first()
+
+    if not sala_bd:
+        raise HTTPException(status_code=404, detail="La sala a eliminar no existe en la base de datos.")
+    
+    # No podemos borrar un espacio con hijos
+    hijos = db.query(SalaAsignatura).filter(SalaAsignatura.id_padre == room_id).count()
+    if hijos > 0:
+        raise HTTPException(status_code=403, detail="Para borrar este espacio primero debes borrar sus hijos")
+    
+    # Ejecutamos el borrado en matrix
+    res_matrix = await eliminar_nodo(room_id)
+    if "ERROR" in res_matrix:
+        raise HTTPException(status_code=500, detail=res_matrix["ERROR"])
+    
+    # Lo borramos tambien de la bd
+    db.delete(sala_bd)
+    db.commit()
+
+    return {"status": "success"}
+
+
     
 
 
