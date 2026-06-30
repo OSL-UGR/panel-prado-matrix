@@ -95,24 +95,51 @@ const NodoArbol = ({ nodo, nivel = 0 , onAbrirModal}) => {
 };
 
 export default function GestorSalas(){
-    const [asignaturas, setAsignaturas] = useState([]);
-    const [activaIndex, setActivaIndex] = useState(0);
-    const [cargando, setCargando] = useState(true);
-    const [direccion, setDireccion] = useState(null);
-    const [salas, setSalas] = useState([]);
-    const [cargandoSalas, setCargandoSalas] = useState(false);
+    // ---DATOS DE PRADO---
+    const [asignaturas, setAsignaturas] = useState([]); //Guarda el array de asignaturas de un profesor
+    const [activaIndex, setActivaIndex] = useState(0); //El iterador del array de asignaturas (para saber la asignatura actual)
 
-    const [modalConfig, setModalConfig] = useState({ abierto: false, id_padre: null });
-    const [formSala, setFormSala] = useState({ nombre: '', descripcion: '', tipo: 'sala', auto_añadir: false });
-    const [enviandoSala, setEnviandoSala] = useState(false);
+    // ---DATOS DE MATRIX---
+    const [salas, setSalas] = useState([]); // Guarda el array de salas de la asignatura actual
+
+    // ---DATOS GESTIÓN INTERFAZ---
+    const [cargando, setCargando] = useState(true); // Para bloquear la interfaz inicial mientras cargamos desde el servidor pa pagina entera
+    const [cargandoSalas, setCargandoSalas] = useState(false); // Lo mismo pero sobre el panel de salas de la asignatura actual
+    const [direccion, setDireccion] = useState(null); // Para saber si a animación del carrusel superior es hacia la izq o la der
+
+    // ---DATOS GESTIÓN FORMULARIO---
+    const [modalConfig, setModalConfig] = useState({ abierto: false, id_padre: null }); // OBjeto que dice si la ventana esta abierta y quien es el padre del nodo que vamos a crear
+    const [formSala, setFormSala] = useState({ nombre: '', descripcion: '', tipo: 'sala', auto_añadir: false }); // Guarda los datos del formulario en tiempo real
+    const [enviandoSala, setEnviandoSala] = useState(false); // Para desactivar el boton de crear una vez que se le ha dado, mientras se realiza la peticion (evita que se le 2 veces)
 
 
-    // 1. Use effect para cargar las asingaturas del profesor
+    // Función auxiliar para cargar la estructura de salas de una asignatura
+    const cargarEstructura = async (asignaturaId) => {
+      try{
+          const respuesta = await fetchEstructuraSalas(asignaturaId); // Obtenemos las salas de la asignatura especificada
+          setSalas(respuesta.salas || []); // Si no tuviese ninguna sala o hubiese algun fallo, definimos el vector como vacío []
+
+      }catch (error){
+          console.error("Error cargando estructura de salas:", error);
+
+      }finally{
+          setCargandoSalas(false); // Dejamos de bloquear la interfaz y mostramos las salas
+      }
+    };
+
+    // Use effect para cargar las asingaturas del profesor, flujo inicial de la pantalla
     useEffect(() => {
         const init = async () => {
             try {
                 const asigData = await fetchAsignaturasPrado();
-                setAsignaturas(asigData);
+                setAsignaturas(asigData); // Guardamos las asignaturas del profesor con todos sus datos
+                
+                // Si la primera asignatura que cargamos esta sincronizada, pedimos sus salas al momento, si no al cambiar de asignatura será el momento de cargar las salas
+                if (asigData.length > 0 && asigData[0].sincronizada){
+
+                    setCargandoSalas(true); // Iniciamos el bloqueo de UI mientras cargamos la estructura
+                    cargarEstructura(asigData[0].id);
+                }
             } catch (error) {
                 console.error("Error cargando asignaturas:", error);
             } finally {
@@ -122,39 +149,16 @@ export default function GestorSalas(){
         init();
     }, []);
 
-    // Función auxiliar para cargar la estructura de salas de una asignatura
-    const cargarEstructura = async (asignaturaId) => {
-      try {
-          const respuesta = await fetchEstructuraSalas(asignaturaId);
-          setSalas(respuesta.salas || []);
-      } catch (error) {
-          console.error("Error cargando estructura de salas:", error);
-      } finally {
-          setCargandoSalas(false);
-      }
-    };
 
-    // 2. Use effect para pedir la estructura de salas de la asignatura dada
-    useEffect(() => {
 
-        if(asignaturas.length === 0) return;
-
-        const asigActual = asignaturas[activaIndex];
-
-        // Cargamos el arbol de la asignatura si esta sincronizada
-        if (asigActual && asigActual.sincronizada){
-            cargarEstructura(asigActual.id);
-        }
-    }, [activaIndex, asignaturas]);
-
-    // Función para el envío del formulario del modal
+    // Función que se ejecuta al darle al botón de confirmar en el formulario de añadir una sala
     const handleSubmitNuevaSala = async (e) => {
         e.preventDefault();
-        setEnviandoSala(true);
+        setEnviandoSala(true); // Desactiva el botón de guardar mientras el servidor está realizando operaciones
         const asigActual = asignaturas[activaIndex];
 
         try {
-            // Mandamos a FastAPI
+            // Con los datos del formulario y el id de la asignatura hacemos la petición POST
             await fetchCrearSala(asigActual.id, {
                 nombre: formSala.nombre,
                 descripcion: formSala.descripcion,
@@ -166,15 +170,18 @@ export default function GestorSalas(){
             // Si ha ido bien, cerramos modal, limpiamos formulario y recargamos el árbol
             setModalConfig({ abierto: false, id_padre: null });
             setFormSala({ nombre: '', descripcion: '', tipo: 'sala', auto_añadir: false });
-            cargarEstructura(asigActual.id); // ¡Refresco del árbol!
+            cargarEstructura(asigActual.id); 
 
-        } catch (error) {
+        } catch (error){
+
             alert("Error al crear la sala: " + error.message);
-        } finally {
-            setEnviandoSala(false);
+        } finally{
+
+            setEnviandoSala(false); // Volvemos a habilitar el botón de guardar
         }
     };
 
+    // Esta función convierte un array plano (Ej: [{id: 1, padre: null}, {id: 2, padre: 1}] en una estructura jerráquica (Ej: [{id: 1, hijos: [{id: 2}]}])
     const construirArbol = (lista) =>{
         const mapa = {};
         const raices = [];
@@ -193,22 +200,37 @@ export default function GestorSalas(){
         return raices;
     };
 
-    const arbolSalas = construirArbol(salas);
+    const arbolSalas = construirArbol(salas); // Ejecutamos la función cada vez que el estado de las salas se modifique
  
     // Funciones para navegar en el carrusel 
     const irAnterior = () => {
         setDireccion('izq');
-        setActivaIndex((prev) => (prev === 0 ? asignaturas.length - 1 : prev - 1));
+
+        const nuevoIndex = activaIndex === 0 ? asignaturas.length - 1 : activaIndex - 1; // Calculamos el nuevo indice de la asignatura 
+
+        setActivaIndex(nuevoIndex);
         setSalas([]);   // Limpiamos el arbol visual
-        setCargandoSalas(true); // Cargamos las salas
+
+        const nuevaAsig = asignaturas[nuevoIndex];
+        if (nuevaAsig && nuevaAsig.sincronizada) {
+            setCargandoSalas(true);
+            cargarEstructura(nuevaAsig.id);
+        }
     };
 
     const irSiguiente = () => {
         setDireccion('der');
-        setActivaIndex((prev) => (prev === asignaturas.length - 1 ? 0 : prev + 1));
-        setSalas([]);   // Limpiamos el arbol visual
-        setCargandoSalas(true); // Cargamos las salas
 
+        const nuevoIndex = activaIndex === asignaturas.length - 1 ? 0 : activaIndex + 1; // Calculamos el nuevo indice de la asignatura
+
+        setActivaIndex(nuevoIndex);
+        setSalas([]);   // Limpiamos el arbol visual
+
+        const nuevaAsig = asignaturas[nuevoIndex];
+        if (nuevaAsig && nuevaAsig.sincronizada) {
+            setCargandoSalas(true);
+            cargarEstructura(nuevaAsig.id);
+        }
     };
 
     // Para cuando este cargando la pestaña
@@ -236,33 +258,43 @@ export default function GestorSalas(){
   return( 
   <div className="flex flex-col gap-8 font-mono min-h-full p-4">
 
-    {/* NUEVO: EL MODAL EMERGENTE */}
+    {/* MODAL PARA AÑADIR SALAS*/}
     {modalConfig.abierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="border-4 border-texto bg-fondo w-full max-w-lg p-8 shadow-[0_0_30px_rgba(0,255,204,0.1)]">
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/80">
+            <div className="border-4 border-texto bg-fondo w-full max-w-lg p-8">
                 <h3 className="text-2xl text-texto font-black tracking-widest border-b-2 border-bordes/50 pb-4 mb-6">
                     [ CREAR_NUEVO_NODO ]
                 </h3>
                 
                 <form onSubmit={handleSubmitNuevaSala} className="flex flex-col gap-6">
-                    {/* Input: Nombre */}
+                    {/* Para el nombre */}
                     <div className="flex flex-col gap-2">
-                        <label className="text-xs text-azul-turquesa tracking-widest">NOMBRE_DE_SALA</label>
+                        <label className=" text-azul-turquesa tracking-widest">NOMBRE_DE_SALA</label>
+                        {/* Contador de caracteres */}
+                        <span className="text-xs text-bordes font-mono">
+                            {formSala.nombre.length}/40
+                        </span>
                         <input 
                             required
-                            type="text" 
+                            type="text"
+                            maxLength={40} 
                             className="bg-paneles border-2 border-bordes p-3 text-texto outline-none focus:border-azul-turquesa"
                             value={formSala.nombre}
                             onChange={(e) => setFormSala({...formSala, nombre: e.target.value})}
                         />
                     </div>
 
-                    {/* Input: Descripción */}
+                    {/* Para la descripción */}
                     <div className="flex flex-col gap-2">
-                        <label className="text-xs text-azul-turquesa tracking-widest">DESCRIPCIÓN / TOPIC</label>
-                        <input 
+                        <label className=" text-azul-turquesa tracking-widest">DESCRIPCIÓN </label>
+                        {/* Contador de caracteres */}
+                        <span className="text-xs text-bordes font-mono">
+                            {formSala.descripcion.length}/256
+                        </span>
+                        <textarea 
                             required
-                            type="text" 
+                            rows="4" 
+                            maxLength={255}
                             className="bg-paneles border-2 border-bordes p-3 text-texto outline-none focus:border-azul-turquesa"
                             value={formSala.descripcion}
                             onChange={(e) => setFormSala({...formSala, descripcion: e.target.value})}
@@ -297,7 +329,7 @@ export default function GestorSalas(){
                         </label>
                     </div>
 
-                    {/* Botones de acción */}
+                    {/* Botones */}
                     <div className="flex justify-end gap-4 mt-4 pt-4 border-t border-bordes/50">
                         <button 
                             type="button"
@@ -318,6 +350,7 @@ export default function GestorSalas(){
             </div>
         </div>
     )}
+    
     {/* TÍTULO */}
     <h2 className="text-3xl text-texto font-black  tracking-widest border-b-4 border-texto pb-4 ]">
         [ TU_ARBOL_DE_SALAS ]
