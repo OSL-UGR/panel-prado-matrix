@@ -403,3 +403,58 @@ async def crear_nodo(nombre: str, descripcion:str, tipo: str, id_padre: str, id_
             "tipo": tipo
             }
     
+async def editar_nodo(room_id: str, nombre: str, descripcion: str, tipo: str, id_profesor: str):
+    """
+    Modifica el nombre, descripción y/o tipo de una sala existente.
+    """
+
+    headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
+
+    async with httpx.AsyncClient() as client:
+
+        # 1. Actualizamos el nombre
+        res_nombre = await client.put(
+            f"{settings.MATRIX_URL}/rooms/{room_id}/state/m.room.name/",
+            headers=headers,
+            json={"name": nombre}
+        )
+
+        if res_nombre.status_code != 200:
+            return {"ERROR": f"Fallo al editar el nombre: {res_nombre.text}"}
+        
+        # 2. Actualizamos la descripción
+        res_desc = await client.put(
+            f"{settings.MATRIX_URL}/rooms/{room_id}/state/m.room.topic/",
+            headers=headers,
+            json={"topic": descripcion}
+        )
+
+        if res_desc.status_code != 200:
+            return {"ERROR": f"Fallo al editar la descripción: {res_desc.text}"}
+        
+        # 3. Actualizamos el tipo y sus permisos (solo para salas no para espacios)
+        if tipo == TipoSala.sala.value or tipo == TipoSala.sala_avisos.value:
+
+            res_tipo = await client.get(
+                f"{settings.MATRIX_URL}/rooms/{room_id}/state/m.room.power_levels/",
+                header = headers
+            )
+
+            if res_tipo.status_code == 200:
+
+                power_levels = res_tipo.json() 
+
+                if tipo == TipoSala.sala_avisos:
+                    power_levels["events_default"] = 50
+                else:
+                    power_levels["events_default"] = 0
+
+                await client.put(
+                    f"{settings.MATRIX_URL}/rooms/{room_id}/state/m.room.power_levels/",
+                    headers=headers,
+                    power_levels=power_levels
+                )
+                
+        return {"status": "success"}
+
+    

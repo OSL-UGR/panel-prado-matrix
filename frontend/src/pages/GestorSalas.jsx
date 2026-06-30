@@ -57,7 +57,7 @@ const NodoArbol = ({ nodo, nivel = 0 , onAbrirModal}) => {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-8 bg-bordes/50"></div>
 
                 {/* Pintamos el hijo con recursividad*/}
-                <NodoArbol nodo={hijo} nivel={nivel + 1} />
+                <NodoArbol nodo={hijo} nivel={nivel + 1} onAbrirModal={onAbrirModal}/>
               </div>
             );
           })}
@@ -408,7 +408,7 @@ export default function GestorSalas(){
                     />
                     </div>
                   <span className="text-texto font-black truncate">{asigAnterior.nombre}</span>
-                  <span className="text-xs text-bordes tracking-widest">ID_PRADO: #{asigAnterior.id} | {asigAnterior.usuarios} Usuarios</span>
+                  <span className="text-xs text-bordes tracking-widest">ID: #{asigAnterior.id} | USR: {asigAnterior.usuarios}</span>
                 </div>
               ) : (
                 <div className="w-full h-24 border-2 border-dashed border-bordes/20"></div> 
@@ -444,7 +444,7 @@ export default function GestorSalas(){
                     />
                     </div>
                   <span className="text-texto font-black truncate">{asigSiguiente.nombre}</span>
-                  <span className="text-xs text-bordes tracking-widest">ID_PRADO: #{asigSiguiente.id} | {asigSiguiente.usuarios} Usuarios</span>
+                  <span className="text-xs text-bordes tracking-widest">ID: #{asigSiguiente.id} | USR: {asigSiguiente.usuarios}</span>
                 </div>
               ) : (
                 <div className="w-full h-24 border-2 border-dashed border-bordes/20"></div> 
