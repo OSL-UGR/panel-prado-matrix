@@ -311,7 +311,7 @@ async def modificar_sala(asignatura_id: str, room_id: str, datos: EditarNodoRequ
     sala_bd.alias_principal = datos.nombre
     if datos.tipo == TipoSala.sala.value:
         sala_bd.tipo = TipoSala.sala
-    elif datos.tip == TipoSala.sala_avisos.value:
+    elif datos.tipo == TipoSala.sala_avisos.value:
         sala_bd.tipo = TipoSala.sala_avisos
 
     db.commit()

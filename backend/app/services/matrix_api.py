@@ -360,12 +360,12 @@ async def crear_nodo(nombre: str, descripcion:str, tipo: str, id_padre: str, id_
         payload_base["creation_content"] = {
 
             "type": "m.space",
-            "m.deferate": False
+            "m.federate": False
         }
     # Para escribir necesitarán de permisos mínimos con nivel 50
     elif tipo == TipoSala.sala_avisos.value:
         payload_base["power_level_content_override"] = {
-            "event_default": 50,
+            "events_default": 50,
             "users": {id_profesor: 100}
         }
 
@@ -437,14 +437,14 @@ async def editar_nodo(room_id: str, nombre: str, descripcion: str, tipo: str, id
 
             res_tipo = await client.get(
                 f"{settings.MATRIX_URL}/rooms/{room_id}/state/m.room.power_levels/",
-                header = headers
+                headers=headers
             )
 
             if res_tipo.status_code == 200:
 
                 power_levels = res_tipo.json() 
 
-                if tipo == TipoSala.sala_avisos:
+                if tipo == TipoSala.sala_avisos.value:
                     power_levels["events_default"] = 50
                 else:
                     power_levels["events_default"] = 0
@@ -452,7 +452,7 @@ async def editar_nodo(room_id: str, nombre: str, descripcion: str, tipo: str, id
                 await client.put(
                     f"{settings.MATRIX_URL}/rooms/{room_id}/state/m.room.power_levels/",
                     headers=headers,
-                    power_levels=power_levels
+                    json=power_levels
                 )
 
         return {"status": "success"}
