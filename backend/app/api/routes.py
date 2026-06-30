@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db # Obteenemos la base de datos
 from pydantic import BaseModel # Para definir models de cara a los cuestionarios
 
-from app.models.sala_asignaturas import SalaAsignatura
+from app.models.sala_asignaturas import SalaAsignatura, TipoSala
 from app.models.usuarios import Usuario
 
 # Importamos los dos servicios
@@ -20,7 +20,9 @@ from app.services.matrix_api import(
     crear_espacio_asignatura,
     insertar_alumnos_sala,
     arreglar_jerarquia,
-    crear_nodo
+    crear_nodo,
+    editar_nodo,
+    eliminar_nodo
 )
 
 from app.services.prado_api import(
@@ -44,6 +46,11 @@ class CrearNodoRequest(BaseModel):
     tipo: str
     id_padre: str
     auto_añadir: bool = False
+
+class EditarNodoRequest(BaseModel):
+    nombre: str
+    descripcion: str
+    tipo: str
 
 router = APIRouter() # Lo que hace es crear un grupo de rutas. En el main tendremos que incluirlo "app.include_router(router)"
 
@@ -279,6 +286,39 @@ async def crear_sala(asignatura_id: str, datos: CrearNodoRequest, db: Session = 
         "tipo": datos.tipo,
         "alumnos_auto_añadidos": alumnos_añadidos
     }
+
+@router.put("/prado/asignaturas/{asignatura_id}/salas/{room_id}")
+async def modificar_sala(asignatura_id: str, room_id: str, datos: EditarNodoRequest, db: Session = Depends(get_db)):
+
+    # Obtenemos la sala de la bd
+    sala_bd = db.query(SalaAsignatura).filter(SalaAsignatura.id_matrix_sala == room_id, SalaAsignatura.id_asignatura_prado == asignatura_id).first()
+
+    if not sala_bd:
+        raise HTTPException(status_code=404, detail="La sala a modificar no existe en la base de datos.")
+    
+    # Bloqueamos la petición si intentamos transformar un espacio en una sala
+    if sala_bd.tipo == TipoSala.espacio and datos.tipo != TipoSala.espacio.value:
+        raise HTTPException(status_code=400, detail="No se puede transformar un espacio en una sala.")
+    
+    # Ejecutamos los cambios en matrix
+    profesor_id = PROFESOR["matrix_id"]
+    res_matrix = await editar_nodo(room_id, datos.nombre, datos.descripcion, datos.tipo, profesor_id)
+
+    if "ERROR" in res_matrix:
+        raise HTTPException(status_code=500, detail=res_matrix["ERROR"])
+    
+    # Actualizamos la bd
+    sala_bd.alias_principal = datos.nombre
+    if datos.tipo == TipoSala.sala.value:
+        sala_bd.tipo = TipoSala.sala
+    elif datos.tip == TipoSala.sala_avisos.value:
+        sala_bd.tipo = TipoSala.sala_avisos
+
+    db.commit()
+
+    return {"status": "success"}
+    
+
 
 
 # ==========================================

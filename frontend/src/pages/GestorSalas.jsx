@@ -471,15 +471,15 @@ export default function GestorSalas(){
           <div className="flex-1 border-2 border-dashed border-azul-turquesa/50 bg-azul-turquesa/5 p-8 flex flex-col items-center justify-center text-center gap-6">
             
             <div className="flex items-center gap-4">
-              <div className="w-3 h-3 bg-azul-turquesa animate-ping rounded-full"></div>
+              <div className="w-3 h-3 bg-azul-turquesa animate-ping"></div>
               <p className="text-xs text-azul-turquesa tracking-widest border border-azul-turquesa px-3 py-1 shadow-azul">
                 Status // Matrix_Disconnected
               </p>
-              <div className="w-3 h-3 bg-azul-turquesa animate-ping rounded-full"></div>
+              <div className="w-3 h-3 bg-azul-turquesa animate-ping"></div>
             </div>
             
             <h2 className="text-2xl lg:text-3xl text-texto font-bold max-w-2xl leading-relaxed">
-              TODAVÍA NO HEMOS SINCRONIZADO NINGUNA ASIGNATURA. <br />
+              TODAVÍA NO HEMOS SINCRONIZADO ESTA ASIGNATURA. <br />
               <p className="text-azul-turquesa">¡VAMOS A POR ELLO!</p>
             </h2>
             
