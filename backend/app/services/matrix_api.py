@@ -454,7 +454,29 @@ async def editar_nodo(room_id: str, nombre: str, descripcion: str, tipo: str, id
                     headers=headers,
                     power_levels=power_levels
                 )
-                
-        return {"status": "success"}
 
+        return {"status": "success"}
     
+async def eliminar_nodo(room_id: str):
+    """
+    Expulsa a todos los alumnos de una sala y la elimina completamente
+    """
+
+    headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
+
+    payload = {
+        "block": True,
+        "purge": True
+    }
+    
+    async with httpx.AsyncClient() as client:
+        res_borrar = await client.delete(
+            f"{settings.SYNAPSE_ADMIN_URL}/v2/rooms/{room_id}",
+            headers=headers,
+            json=payload
+        )
+
+        if res_borrar.status_code != 200 and res_borrar.status_code != 202:
+            return {"ERROR": f"Fallo al borrar la sala: {res_borrar.status_code} - {res_borrar.text}"}
+        
+        return {"status": "success"}
