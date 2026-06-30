@@ -148,3 +148,52 @@ export const fetchCrearSala = async (asignaturaId,datosNodo) =>{
     }
 
 }
+
+/**
+ * GESTOR SALAS: Edita nombre, descripcion y/o tipo de una sala/espacio existente (PUT)
+ */
+export const fetchEditarSala = async (asignaturaId, roomId, datosNodo) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/prado/asignaturas/${encodeURIComponent(asignaturaId)}/salas/${encodeURIComponent(roomId)}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datosNodo)
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || `Error en la petición: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error(`Error al editar la sala ${roomId} en la asignatura ${asignaturaId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * GESTOR SALAS: Elimina una sala o espacio (DELETE)
+ */
+export const fetchEliminarSala = async (asignaturaId, roomId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/prado/asignaturas/${encodeURIComponent(asignaturaId)}/salas/${encodeURIComponent(roomId)}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || `Error en la petición: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error(`Error al eliminar la sala ${roomId} en la asignatura ${asignaturaId}:`, error);
+        throw error;
+    }
+};
