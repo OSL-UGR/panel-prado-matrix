@@ -470,7 +470,8 @@ async def eliminar_nodo(room_id: str):
     }
     
     async with httpx.AsyncClient() as client:
-        res_borrar = await client.delete(
+        res_borrar = await client.request(
+            "DELETE",
             f"{settings.SYNAPSE_ADMIN_URL}/v2/rooms/{room_id}",
             headers=headers,
             json=payload
