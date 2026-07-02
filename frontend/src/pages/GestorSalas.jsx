@@ -425,8 +425,6 @@ export default function GestorSalas(){
                             {/* Si es un espacio y estamos editando, solo mostramos la opción espacio */}
                             {modalConfig.modo === 'editar' && formSala.tipo === 'espacio' ? (
                                 <option value="espacio">ESPACIO (Contenedor de Salas)</option>
-
-                            
                             ) :( 
                                 <>
                                     <option value="sala">SALA (Chat Normal)</option>
