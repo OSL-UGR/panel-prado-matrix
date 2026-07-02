@@ -38,6 +38,7 @@ async def obtener_info_sala(db: Session, room_id: str): # Aync para que no se bl
 
         "datos_sala": {
             "alias": sala.alias_principal if sala else "Desconocido", # Devolvemos Descononico si no lo hubiese encontrado
+            "descripcion": sala.descripcion if sala else "Desconocido",
             "tipo": sala.tipo.value if sala else "Desconocido"
         },
         "miembros_matrix": datos_matrix.get("joined", {}) # Devolvemos el listado de los miembros obtenidos a través de la API
@@ -140,7 +141,7 @@ async def registrar_usuarios_matrix(usuarios_prado: list):
         "errores": errores
     }   
 
-async def crear_espacio_asignatura(nombre_asignatura: str, id_profesor: str):
+async def crear_espacio_asignatura(nombre_asignatura: str,descripcion: str,  id_profesor: str):
     """
     Crea un espacio privado y le da permisos de administrador al profesor.
     """ 
@@ -150,6 +151,7 @@ async def crear_espacio_asignatura(nombre_asignatura: str, id_profesor: str):
     payload = {
 
         "name": nombre_asignatura,
+        "topic": descripcion,
         "preset": "private_chat",
         "creation_content": {
             "type": "m.space", # Convierte la sala en un espacio
@@ -278,6 +280,7 @@ async def arreglar_jerarquia(espacio_raiz_id : str, asignatura_id: str, db: Sess
 
             ids_para_borrar = ids_bd - ids_matrix # Las salas que se hayan borrado a través de Matrix
             ids_para_insertar = ids_matrix - ids_bd # Las salas que se hayan insertado a través de Matrix
+            ids_comunes = ids_bd.intersection(ids_matrix) # Las que estań en ambos sitios
 
             # BORRAMOS
             if ids_para_borrar:
@@ -309,14 +312,37 @@ async def arreglar_jerarquia(espacio_raiz_id : str, asignatura_id: str, db: Sess
                         id_asignatura_prado=asignatura_id,
                         id_matrix_sala=nueva_sala["room_id"],
                         alias_principal=nueva_sala.get("name", "Sala sin nombre"),
+                        descripcion=nueva_sala.get("topic",""),
                         tipo=tipo,
                         id_padre=padre_id 
                     )
 
                     db.add(sala_insertar)
 
+            # ACTUALIZAMOS
+            if ids_comunes:
+
+                mapa_salas_bd = {} # Map para buscar salas de la bd por su id de matrix
+
+                for sala in salas_bd:
+                    mapa_salas_bd[sala.id_matrix_sala] = sala
+
+                for sala in salas_matrix:
+                    room_id = sala["room_id"]
+
+                    if room_id in ids_comunes:
+                        sala_bd = mapa_salas_bd[room_id]
+                        nombre = sala.get("name", "Sala sin nombre")
+                        descripcion = sala.get("topic", "")
+
+                        # Si se hubiese cambiado el nombre o descipcion desde matrix actualizamos nuestra bd
+                        if sala_bd.alias_principal != nombre or sala_bd.descripcion != descripcion:
+                            sala_bd.alias_principal = nombre
+                            sala_bd.descripcion = descripcion
+
+
             # Guardamos los cambios si los hubo
-            if ids_para_borrar or ids_para_insertar:
+            if ids_para_borrar or ids_para_insertar or ids_comunes:
                 db.commit()
 
         except Exception as e:

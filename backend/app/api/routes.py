@@ -116,7 +116,8 @@ async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends
         print(f"Advertencias al registrar usuarios: {res_registrar_usuarios['errores']}")
 
     # 2. Creamos el espacio
-    res_crear_espacio = await crear_espacio_asignatura(nombre_asignatura, profesor_id)
+    descripcion = f"Espacio principal de la asignatura {nombre_asignatura}"
+    res_crear_espacio = await crear_espacio_asignatura(nombre_asignatura,descripcion, profesor_id)
 
     if "ERROR" in res_crear_espacio:
         raise HTTPException(status_code=500, detail=res_crear_espacio["ERROR"])
@@ -136,6 +137,7 @@ async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends
             id_asignatura_prado=asignatura_id,
             id_matrix_sala=room_id,
             alias_principal=nombre_asignatura,
+            descripcion=descripcion,
             tipo="espacio"
         )
 
@@ -209,6 +211,7 @@ async def get_salas_asignatura(asignatura_id : str, db: Session = Depends(get_db
             "id": sala.id,
             "room_id": sala.id_matrix_sala,
             "nombre": sala.alias_principal,
+            "descripcion": sala.descripcion,
             "tipo": sala.tipo.value,
             "id_padre": sala.id_padre
         })
@@ -296,9 +299,12 @@ async def modificar_sala(asignatura_id: str, room_id: str, datos: EditarNodoRequ
     if not sala_bd:
         raise HTTPException(status_code=404, detail="La sala a modificar no existe en la base de datos.")
     
-    # Bloqueamos la petición si intentamos transformar un espacio en una sala
+    # Bloqueamos la petición si intentamos transformar un espacio en una sala o viceversa
     if sala_bd.tipo == TipoSala.espacio and datos.tipo != TipoSala.espacio.value:
         raise HTTPException(status_code=400, detail="No se puede transformar un espacio en una sala.")
+    
+    if sala_bd.tipo != TipoSala.espacio and datos.tipo == TipoSala.espacio.value:
+        raise HTTPException(status_code=400, detail="No se puede transformar una sala en un espacio.")
     
     # Ejecutamos los cambios en matrix
     profesor_id = PROFESOR["matrix_id"]
@@ -309,6 +315,8 @@ async def modificar_sala(asignatura_id: str, room_id: str, datos: EditarNodoRequ
     
     # Actualizamos la bd
     sala_bd.alias_principal = datos.nombre
+    sala_bd.descripcion = datos.descripcion
+
     if datos.tipo == TipoSala.sala.value:
         sala_bd.tipo = TipoSala.sala
     elif datos.tipo == TipoSala.sala_avisos.value:

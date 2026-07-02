@@ -422,9 +422,22 @@ export default function GestorSalas(){
                             value={formSala.tipo}
                             onChange={(e) => setFormSala({...formSala, tipo: e.target.value})}
                         >
-                            <option value="sala">SALA (Chat Normal)</option>
-                            <option value="espacio">ESPACIO (Contenedor de Salas)</option>
-                            <option value="sala_avisos">SALA_DE_AVISOS (Solo lectura)</option>
+                            {/* Si es un espacio y estamos editando, solo mostramos la opción espacio */}
+                            {modalConfig.modo === 'editar' && formSala.tipo === 'espacio' ? (
+                                <option value="espacio">ESPACIO (Contenedor de Salas)</option>
+
+                            
+                            ) :( 
+                                <>
+                                    <option value="sala">SALA (Chat Normal)</option>
+                                    <option value="sala_avisos">SALA_DE_AVISOS (Solo lectura)</option>
+                                    {/* Solo permitimos crear espacios nuevos, este modal no se encuentra en el modo edicin */}
+                                    {modalConfig.modo === 'crear' && (
+                                        <option value="espacio">ESPACIO (Contenedor de Salas)</option>
+                                    )}
+                                </>
+                            )}
+                            
                         </select>
                     </div>
 

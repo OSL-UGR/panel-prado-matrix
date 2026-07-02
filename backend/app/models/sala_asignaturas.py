@@ -25,6 +25,8 @@ class SalaAsignatura(Base):
 
     alias_principal = Column(String)
 
+    descripcion = Column(String)
+
     tipo = Column(Enum(TipoSala)) # Espacio, sala o sala_avisos
 
     # Guardael id de Matrix del espacio del padre que tenga 
