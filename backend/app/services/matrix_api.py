@@ -8,6 +8,7 @@ import secrets
 import asyncio
 from sqlalchemy.orm import Session
 from app.models.sala_asignaturas import SalaAsignatura, TipoSala # Así podremos hacer db.query(SalaAsignatura)
+from app.models.cronogramas import Cronograma
 from app.core.config import settings
 
 async def obtener_info_sala(db: Session, room_id: str): # Aync para que no se bloquee y así pueda antender otras peticiones mientras
@@ -318,6 +319,11 @@ async def arreglar_jerarquia(espacio_raiz_id : str, asignatura_id: str, db: Sess
                     )
 
                     db.add(sala_insertar)
+                    db.flush() # Obligia a Postgres a generar el id (sala_insertar.id) antes del commit
+
+                    # Si hemos creado una sala de char normal, le creamos su cronocgrama asociado
+                    if tipo == TipoSala.sala:
+                        db.add(Cronograma(id_matrix_sala=nueva_sala["room_id"]))
 
             # ACTUALIZAMOS
             if ids_comunes:
