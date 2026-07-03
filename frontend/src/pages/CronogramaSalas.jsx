@@ -306,10 +306,21 @@ export default function CronogramaSalas(){
                 ) : (
 
                     /* Si tiene salas, mostramos el selector y la matriz */ 
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-4">
+                        <label className="text text-azul-turquesa tracking-widest font-black text-right">
+                            [ SELECCIONA_LA_SALA_PARA_CAMBIARLE_EL_HORARIO ]
+                        </label>
+    
+                        {/* Contenedor con scroll horizontal */}
+                        <div className="flex items-center gap-6 py-8 px-4 overflow-x-auto border-2 border-bordes bg-fondo scrollbar-thin scrollbar-thumb-bordes scrollbar-track-paneles">
+                            {salas.map((sala) => {
+                                //const esActiva = sala.room_id === salaActivaId;
 
 
+                            })}
+                        </div>
                     </div>
+
                 )}
 
             </div>

@@ -230,7 +230,7 @@ export default function GestorSalas(){
         setConfirmarBorrado({ abierto: false, tieneHijos: false });
         setModalConfig({ abierto: false, modo: 'crear', id_padre: null, room_id: null });
         setFormSala({ nombre: '', descripcion: '', tipo: 'sala', auto_añadir: false });
-        cargarEstructura(asigActual.id);
+        await cargarEstructura(asigActual.id);
 
       }catch (error){
           alert("Error al eliminar el nodo: " + error.message);
