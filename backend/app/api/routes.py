@@ -7,9 +7,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db # Obteenemos la base de datos
 from pydantic import BaseModel # Para definir models de cara a los cuestionarios
+from typing import List
 
 from app.models.sala_asignaturas import SalaAsignatura, TipoSala
 from app.models.usuarios import Usuario
+from app.models.cronogramas import Cronograma
 
 # Importamos los dos servicios
 from app.services.matrix_api import(
@@ -51,6 +53,9 @@ class EditarNodoRequest(BaseModel):
     nombre: str
     descripcion: str
     tipo: str
+
+class ActualizarCronogramaRequest(BaseModel):
+    matriz: List[List[int]] # Esperamos una matriz de 7*24
 
 router = APIRouter() # Lo que hace es crear un grupo de rutas. En el main tendremos que incluirlo "app.include_router(router)"
 
@@ -353,9 +358,6 @@ async def borrar_sala(asignatura_id: str, room_id: str, db: Session = Depends(ge
 
 
     
-
-
-
 # ==========================================
 # RUTAS DE LA PESTAÑA DE INICIO PERSONALIZADAS
 # ==========================================
@@ -381,5 +383,36 @@ async def get_inicio_estadisticas(db: Session = Depends(get_db)):
             "salas": total_salas_matrix,
             "alumnos": total_alumnos_matrix
         }
+    }
+
+
+# ==========================================
+# RUTAS DE LA BASE DE DATOS DE CRONOGRAMA
+# ==========================================
+
+@router.get("/prado/asignaturas/{asignatura_id}/salas/{room_id}/cronograma")
+async def get_cronograma(asignatura_id: str, room_id: str, db: Session = Depends(get_db)):
+    """
+    Devuelve la matriz 7x24 del cronograma de una sala específica.
+    """
+
+    # Verifiamos que la sala existe y pertenece a esa asignatura en la bd
+    sala_db = db.query(SalaAsignatura).filter(
+        SalaAsignatura.id_matrix_sala == room_id,
+        SalaAsignatura.id_asignatura_prado == asignatura_id
+    ).first()
+
+    if not sala_db:
+        raise HTTPException(status_code=404, detail="La sala no pertenece para esa asignatura.")
+    
+    #Obtenemos su cronograma
+    crono_db = db.query(Cronograma).filter(Cronograma.sala_id == room_id).first()
+
+    if not crono_db:
+        raise HTTPException(status_code=404, detail="Esta sala no tiene ningún cronograma asignado")
+    
+    return {
+        "status": "success",
+        "matriz": crono_db.configuracion
     }
 
