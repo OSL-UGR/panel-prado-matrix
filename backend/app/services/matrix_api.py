@@ -323,7 +323,7 @@ async def arreglar_jerarquia(espacio_raiz_id : str, asignatura_id: str, db: Sess
 
                     # Si hemos creado una sala de char normal, le creamos su cronocgrama asociado
                     if tipo == TipoSala.sala:
-                        db.add(Cronograma(id_matrix_sala=nueva_sala["room_id"]))
+                        db.add(Cronograma(sala_id=sala_insertar.id))
 
             # ACTUALIZAMOS
             if ids_comunes:
