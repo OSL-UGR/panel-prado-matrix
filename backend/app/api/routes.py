@@ -406,7 +406,7 @@ async def get_cronograma(asignatura_id: str, room_id: str, db: Session = Depends
         raise HTTPException(status_code=404, detail="La sala no pertenece para esa asignatura.")
     
     #Obtenemos su cronograma
-    crono_db = db.query(Cronograma).filter(Cronograma.sala_id == room_id).first()
+    crono_db = db.query(Cronograma).filter(Cronograma.sala_id == sala_db.id).first()
 
     if not crono_db:
         raise HTTPException(status_code=404, detail="Esta sala no tiene ningún cronograma asignado")
@@ -416,3 +416,29 @@ async def get_cronograma(asignatura_id: str, room_id: str, db: Session = Depends
         "matriz": crono_db.configuracion
     }
 
+@router.put("/prado/asignaturas/{asignatura_id}/salas/{room_id}/cronograma")
+async def actualizar_cronograma(asignatura_id: str, room_id: str, datos: ActualizarCronogramaRequest, db: Session = Depends(get_db)):
+    """
+    Recibe una matriz 7x24 y con esta ser sobreescribe la actual del cronograma.
+    """
+
+    # Verifiamos que la sala existe y pertenece a esa asignatura en la bd
+    sala_db = db.query(SalaAsignatura).filter(
+        SalaAsignatura.id_matrix_sala == room_id,
+        SalaAsignatura.id_asignatura_prado == asignatura_id
+    ).first()
+
+    if not sala_db:
+        raise HTTPException(status_code=404, detail="La sala no pertenece para esa asignatura.")
+
+    # Obtenemos el cronograma actual
+    crono_db = db.query(Cronograma).filter(Cronograma.sala_id == sala_db.id).first()
+
+    if not crono_db:
+        raise HTTPException(status_code=404, detail="Esta sala no admite cronogramas.")
+    
+    # SObrescribimos la mattriz dada en la bd
+    crono_db.configuracion = datos.matriz
+    db.commit()
+    
+    return {"status": "success"}
