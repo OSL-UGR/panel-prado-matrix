@@ -197,3 +197,46 @@ export const fetchEliminarSala = async (asignaturaId, roomId) => {
         throw error;
     }
 };
+
+/**
+ * CRONOGRAMA: Obtiene la matriz 7x24 actual de una sala (GET)
+ */
+export const fetchGetCronograma = async (asignaturaId, roomId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/prado/asignaturas/${encodeURIComponent(asignaturaId)}/salas/${encodeURIComponent(roomId)}/cronograma`);        
+        
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || `Error en la petición: ${response.status}`);
+        }
+        return await response.json(); 
+    } catch (error) {
+        console.error(`Error al obtener el cronograma de la sala ${roomId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * CRONOGRAMA: Sobrescribe la matriz 7x24 de una sala (PUT)
+ */
+export const fetchPutCronograma = async (asignaturaId, roomId, datosCronograma) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/prado/asignaturas/${encodeURIComponent(asignaturaId)}/salas/${encodeURIComponent(roomId)}/cronograma`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datosCronograma) //datosCronograma debe tener la forma { matriz: [[0,0...], [0,0...]...] }
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || `Error en la petición: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error(`Error al actualizar el cronograma de la sala ${roomId}:`, error);
+        throw error;
+    }
+};
