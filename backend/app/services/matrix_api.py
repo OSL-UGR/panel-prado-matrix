@@ -583,3 +583,41 @@ async def accionar_celda_horario(room_id: str, cerrar: bool):
     cerrar=True  -> Bajar la berja (silenciar alumnos)
     cerrar=False -> Subir la berja (permitir hablar, events_default = 0)
     """
+
+    headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
+
+    async with httpx.AsyncClient() as client:
+
+        # Obtenemos los permisos de la sala actuales
+        res_permisos = await client.get(
+            f"{settings.MATRIX_URL}/rooms/{room_id}/state/m.room.power_levels",
+            headers=headers
+        )
+
+        if res_permisos.status_code != 200:
+            return {"ERROR": f"Fallo al obtener los permisos de la sala: {res_permisos.status_code} - {res_permisos.text}"}
+        
+        permisos = res_permisos.json()
+
+        if cerrar:
+            nuevo_permiso = 50
+        else:
+            nuevo_permiso = 0
+
+        # SI la sala ya estaba en el estado correcto no debemos de ejecutar la petición 
+        if permisos.get("events_default", 0) == nuevo_permiso:
+            return {"La sala ya estaba en el estado deseado"}
+        
+        # Ejecutamos el cambio
+        permisos["events_default"] = nuevo_permiso
+
+        res_actualizar = await client.put(
+            f"{settings.MATRIX_URL}/rooms/{room_id}/state/m.room.power_levels",
+            headers=headers,
+            json=permisos
+        )
+
+        if res_actualizar.status_code != 200:
+            return {"ERROR": f"Fallo al actualizar los permisos de la sala: {res_actualizar.status_code} - {res_actualizar.text}"}
+        
+        return {"status": "success"}
