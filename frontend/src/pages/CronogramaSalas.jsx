@@ -65,6 +65,42 @@ export default function CronogramaSalas(){
         }
     }
 
+    const handleAlternarHora = (dia, hora) => {
+
+        //Copiamos la matriz
+        const nuevaMatriz = [];
+        for (const fila of matriz){
+            // Copiamos la fila
+            const copiaFila = [...fila];
+
+            nuevaMatriz.push(copiaFila);
+        }
+
+        if(nuevaMatriz[dia][hora] === 0){
+
+            nuevaMatriz[dia][hora] = 1;
+        }
+        else{
+
+            nuevaMatriz[dia][hora] = 0;
+        }
+
+        setMatriz(nuevaMatriz);
+    };
+
+    const handleGuardarCrono = async () => {
+        const asigActual = asignaturas[activaIndex];
+
+        try{
+            await fetchPutCronograma(asigActual.id, salaActivaId, {matriz});
+        } catch(error){
+
+            alert("ERROR: No se ha podido guardar el cronograma: " + error.message)
+        }
+    };
+
+    const DIAS = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO', 'DOMINGO'];
+
     // Definimos el flujo inicial de la pantalla
     useEffect(() => {
         const init = async () => {
@@ -86,6 +122,7 @@ export default function CronogramaSalas(){
         };
         init();
     }, []);
+
 
     // Para la navegación del carrusel superior
     const irAnterior = () => {
@@ -319,7 +356,7 @@ export default function CronogramaSalas(){
                                     <div key={sala.room_id} className="flex justify-center">
                                             <div onClick={()=> {
                                                 setSalaActivaId(sala.room_id)
-                                                cargarMatriz(asigActual.id, sala.roomId);
+                                                cargarMatriz(asigActual.id, sala.room_id);
                                             }}>
                                             <div className="group relative flex flex-col justify-center text-center overflow-hidden border-2 cursor-pointer rounded-full w-40 h-40 border-texto duration-200 hover:border-azul-turquesa hover:shadow-[0_0_20px_var(--color-azul-turquesa)] bg-paneles z-10">
 
@@ -348,10 +385,105 @@ export default function CronogramaSalas(){
                                 );
                             })}
                         </div>
+                        {/* =========================================
+                            MATRIZ SEMANAL 7x24 (LA BERJA)
+                            ========================================= */}
+                        {cargandoCron ? (
+                            
+                            <p className="text-texto text-center font-bold tracking-widest mt-12 animate-pulse">
+                                [ LEYENDO_MATRIZ_DESDE_POSTGRESQL... ]
+                            </p>
+
+                        ) : matriz.length > 0 && (
+                            
+                            <div className="flex flex-col gap-4 mt-8">
+                                <label className="text-xs text-azul-turquesa tracking-widest uppercase font-black">
+                                    [ CONFIGURAR_HORARIOS_SEMANALES_DE_ACCESO ]
+                                </label>
+                                
+                                {/* Estilo inyectado para la textura de la berja (rayas rojas de advertencia) */}
+                                <style>{`
+                                    .textura-berja {
+                                        background-color: #111827;
+                                        background-image: repeating-linear-gradient(45deg, #ef4444 0, #ef4444 2px, transparent 0, transparent 50%);
+                                        background-size: 8px 8px;
+                                        border-color: #ef4444 !important;
+                                        color: #ef4444 !important;
+                                        box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.4);
+                                    }
+                                `}</style>
+
+                                {/* Contenedor Grid de 7 Columnas */}
+                                <div className="grid grid-cols-7 gap-2 border-4 border-texto bg-fondo p-4">
+                                    
+                                    {/* Recorremos cada uno de los 7 días */}
+                                    {matriz.map((filaHoras, dia) => {
+                         
+                                        
+                                        return (
+                                            <div key={dia} className="flex flex-col gap-2">
+                                                
+                                                {/* Cabecera del Día */}
+                                                <div className="relative overflow-hidden border-2 border-bordes bg-paneles text-center py-2 border-b-4">
+                                                    
+                                                    {/* Imagen de fondo */}
+                                                    <div className="absolute inset-0 opacity-40 pointer-events-none">
+                                                        <img 
+                                                            src="https://i.pinimg.com/control1/736x/cd/14/d6/cd14d6b7244c5579c8d5fe40e547ffb2.jpg" 
+                                                            alt="Fondo día" 
+                                                            className="w-full h-full object-cover" 
+                                                        />
+                                                    </div>
+                                                    
+                                                    {/* Texto del día */}
+                                                    <span className="relative z-10 text-xs font-black tracking-widest text-texto">
+                                                        {DIAS[dia]}
+                                                    </span>
+                                                </div>
+                                                
+                                                {/* Panel vertical de las horas (uno para cada día) */}
+                                                <div className="flex flex-col gap-1 h-[400px] overflow-y-auto pr-2 scrollbar-thin  ">
+                                                    {filaHoras.map((estado, hora) => {
+
+                                                        // Formateamos las horas para que tengan todas el mismo formato
+                                                        const horaStr = `${String(hora).padStart(2, '0')}:00`;
+                                                        const horaStr2 = `${String(hora+1).padStart(2, '0')}:00`;
+                                                        
+                                                        return (
+                                                            <div
+                                                                key={hora}
+                                                                onClick={() => handleAlternarHora(dia, hora)}
+                                                                className={`border border-bordes/64 p-2 text-center text-xs font-mono font-bold tracking-wider cursor-pointer select-none transition-all duration-150 ${
+                                                                    estado === 1 
+                                                                    ? 'border-red-500 bg-red-950/50 text-red-500 ]' 
+                                                                    : 'bg-paneles text-texto hover:border-azul-turquesa hover:text-azul-turquesa'
+                                                                }`}
+                                                            >
+                                                                {horaStr} {'-'} {horaStr2} {estado === 1 ? '[CERRADO]' : '[ABIERTO]'} 
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* BOTÓN DE GUARDADO */}
+                                <div className="flex justify-end mt-4">
+                                    <button
+                                        type="button"
+                                        onClick={handleGuardarCrono}
+                                        className="px-8 py-4 border-4 border-azul-turquesa bg-fondo text-azul-turquesa hover:bg-azul-turquesa hover:text-fondo font-black tracking-widest"
+                                    >
+                                        [ GUARDAR_CAMBIOS ]
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
-
                 )}
-
             </div>
         </div>
     );
