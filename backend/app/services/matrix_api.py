@@ -495,13 +495,13 @@ async def eliminar_nodo(room_id: str):
     """
 
     headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
-    base_url = settings.MATRIX_URL.split("/_matrix")[0]
+    base_url = settings.MATRIX_URL.split("/_matrix")[0] 
     
     async with httpx.AsyncClient() as client:
 
         # 1. Petición para recoger nuestro id como usuario
         res_whoami = await client.get(
-            f"{base_url}/_matrix/client/v3/account/whoami",
+            f"{settings.MATRIX_URL}/account/whoami",
             headers=headers
         )
 
@@ -513,9 +513,25 @@ async def eliminar_nodo(room_id: str):
         # 2. Petición para vacíar la sala de usuarios (todos menos nosotros)
         res_usuarios = await client.get(
 
-            f"{base_url}/_matrix/client/v3/rooms/{room_id}/joined_members",
+            f"{settings.MATRIX_URL}/rooms/{room_id}/joined_members",
             headers=headers
         )
+
+        # Arregla fallos de incosistencia:
+        # =================================================================
+        if res_usuarios.status_code == 403 and mi_id is not None:
+            # Usamos la API de Admin para meter a nuestro usuario en la sala
+            await client.post(
+                f"{settings.SYNAPSE_ADMIN_URL}/v1/join/{room_id}",
+                headers=headers,
+                json={"user_id": mi_id}
+            )
+            # Volvemos a pedir la lista de usuarios ahora que hemos entrado
+            res_usuarios = await client.get(
+                f"{settings.MATRIX_URL}/rooms/{room_id}/joined_members",
+                headers=headers
+            )
+        # =================================================================
 
         if res_usuarios.status_code == 200 and mi_id != None:
             usuarios = res_usuarios.json().get("joined",{})
@@ -531,14 +547,14 @@ async def eliminar_nodo(room_id: str):
 
                     await client.post(
 
-                        f"{base_url}/_matrix/client/v3/rooms/{room_id}/kick",
+                        f"{settings.MATRIX_URL}/rooms/{room_id}/kick",
                         headers=headers,
                         json=parametros
                     )
             
             # Una vez expulsado a todos, nos salimos nosotros mismos 
             await client.post(
-                f"{base_url}/_matrix/client/v3/rooms/{room_id}/leave",
+                f"{settings.MATRIX_URL}/rooms/{room_id}/leave",
                 headers=headers
             )
 
@@ -560,3 +576,10 @@ async def eliminar_nodo(room_id: str):
             return {"ERROR": f"Fallo al borrar la sala: {res_borrar.status_code} - {res_borrar.text}"}
         
         return {"status": "success"}
+
+async def accionar_celda_horario(room_id: str, cerrar: bool):
+    """
+    Lee los permisos actuales de la sala y los modifica para silenciar o permitir hablar a los alumnos.
+    cerrar=True  -> Bajar la berja (silenciar alumnos)
+    cerrar=False -> Subir la berja (permitir hablar, events_default = 0)
+    """
