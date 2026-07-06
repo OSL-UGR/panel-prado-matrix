@@ -495,13 +495,59 @@ async def eliminar_nodo(room_id: str):
     """
 
     headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
-
-    payload = {
-        "block": True,
-        "purge": True
-    }
+    base_url = settings.MATRIX_URL.split("/_matrix")[0]
     
     async with httpx.AsyncClient() as client:
+
+        # 1. Petición para recoger nuestro id como usuario
+        res_whoami = await client.get(
+            f"{base_url}/_matrix/client/v3/account/whoami",
+            headers=headers
+        )
+
+        mi_id = None
+
+        if res_whoami.status_code != 200:
+            mi_id = res_whoami.json().get("user_id")
+
+        # 2. Petición para vacíar la sala de usuarios (todos menos nosotros)
+        res_usuarios = await client.get(
+
+            f"{base_url}/_matrix/client/v3/rooms/{room_id}/joined_members",
+            headers=headers
+        )
+
+        if res_usuarios.status_code == 200 and mi_id != None:
+            usuarios = res_usuarios.json().get("joined",{})
+
+            # Echamos a todos los usuarios (menos a nosotros mismos el administrador)
+            for user_id in usuarios.keys():
+                if user_id != mi_id:
+
+                    parametros ={
+                        "user_id": user_id, 
+                        "reason": "La sala ha sido eliminada permanentemente del sistema."
+                    }
+
+                    await client.post(
+
+                        f"{base_url}/_matrix/client/v3/rooms/{room_id}/kick",
+                        json=parametros
+                    )
+            
+            # Una vez expulsado a todos, nos salimos nosotros mismos 
+            await client.post(
+                f"{base_url}/_matrix/client/v3/rooms/{room_id}/leave",
+                headers=headers
+            )
+
+
+        # Realizamos el borrado de la sala una vez está completamente vacía
+        payload = {
+            "block": True,
+            "purge": True
+        }
+
         res_borrar = await client.request(
             "DELETE",
             f"{settings.SYNAPSE_ADMIN_URL}/v2/rooms/{room_id}",
