@@ -45,9 +45,6 @@ async def verificador_horarios():
                 if "ERROR" in res:
                     print(f"El error ha ocurrido sobre la sala: {crono.sala.alias_principal}")
 
-                estado_str = "[ABIERTO]"
-                if cerrar_celda:
-                    estado_str = "[CERRADO]"
 
     except Exception as e:
         print(f"ERROR: Ha habido un error al verificar los horarios de una sala. {str(e)}")
