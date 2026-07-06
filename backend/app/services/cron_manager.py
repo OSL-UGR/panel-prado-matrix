@@ -23,7 +23,7 @@ async def verificador_horarios():
     """
 
     dia_actual = datetime.now(ZONA_HORARIA).weekday()
-    hora_actual = datetime.now(ZONA_HORARIA).hour()
+    hora_actual = datetime.now(ZONA_HORARIA).hour
 
     db: Session = sesion()
 
@@ -34,21 +34,20 @@ async def verificador_horarios():
         for crono in cronogramas:
             estado_celda = crono.configuracion[dia_actual][hora_actual]
         
-        cerrar_celda = False
-        if estado_celda == 1:
-            cerrar_celda= True
+            cerrar_celda = False
+            if estado_celda == 1:
+                cerrar_celda= True
 
-        if crono.sala and crono.sala.id_matrix_sala:
+            if crono.sala and crono.sala.id_matrix_sala:
 
-            res = await accionar_celda_horario(crono.sala.id_matrix_sala, cerrar_celda)
+                res = await accionar_celda_horario(crono.sala.id_matrix_sala, cerrar_celda)
 
-            if "ERROR" in res:
-                print(f"El error ha ocurrido sobre la sala: {crono.sala.alias_principal}")
-                exit(1)
+                if "ERROR" in res:
+                    print(f"El error ha ocurrido sobre la sala: {crono.sala.alias_principal}")
 
-            estado_str = "[ABIERTO]"
-            if cerrar_celda:
-                estado_str = "[CERRADO]"
+                estado_str = "[ABIERTO]"
+                if cerrar_celda:
+                    estado_str = "[CERRADO]"
 
     except Exception as e:
         print(f"ERROR: Ha habido un error al verificar los horarios de una sala. {str(e)}")
