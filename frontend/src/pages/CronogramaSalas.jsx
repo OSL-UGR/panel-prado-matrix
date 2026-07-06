@@ -312,11 +312,40 @@ export default function CronogramaSalas(){
                         </label>
     
                         {/* Contenedor con scroll horizontal */}
-                        <div className="flex items-center gap-6 py-8 px-4 overflow-x-auto border-2 border-bordes bg-fondo scrollbar-thin scrollbar-thumb-bordes scrollbar-track-paneles">
+                        <div className="flex items-center justify-center gap-6 py-8 px-4 overflow-x-auto border-2 border-bordes bg-fondo scrollbar-thin scrollbar-thumb-bordes scrollbar-track-paneles">
                             {salas.map((sala) => {
-                                //const esActiva = sala.room_id === salaActivaId;
+                                const esActiva = sala.room_id === salaActivaId;
+                                return(
+                                    <div key={sala.room_id} className="flex justify-center">
+                                            <div onClick={()=> {
+                                                setSalaActivaId(sala.room_id)
+                                                cargarMatriz(asigActual.id, sala.roomId);
+                                            }}>
+                                            <div className="group relative flex flex-col justify-center text-center overflow-hidden border-2 cursor-pointer rounded-full w-40 h-40 border-texto duration-200 hover:border-azul-turquesa hover:shadow-[0_0_20px_var(--color-azul-turquesa)] bg-paneles z-10">
 
+                                                {/* Imagen de fondo del nodo */}
+                                                <div className="absolute opacity-50 pointer-events-none">
+                                                    <img 
+                                                        src={esActiva 
+                                                            ? "https://i.pinimg.com/736x/cb/25/1b/cb251b7b8ab7be51f69067da26770afb.jpg" //Si es un espacio
+                                                            : "https://i.pinimg.com/736x/fd/0a/88/fd0a886a160facf6c2de40b690019a36.jpg" //Si es una sala
+                                                        }                                                
+                                                        alt="Fondo nodo" 
+                                                        className="w-full h-full object-cover" 
+                                                    />
+                                                </div>
 
+                                                {/* Textos de la sala */}
+                                                <span className="relative z-10 font-bold tracking-widest text-sm text-texto duration-200 group-hover:text-azul-turquesa">
+                                                    {sala.nombre}
+                                                </span>
+                                                <span className="relative z-10 text-[10px] text-bordes tracking-widest mt-1">
+                                                    {sala.tipo}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
                             })}
                         </div>
                     </div>
