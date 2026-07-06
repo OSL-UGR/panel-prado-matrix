@@ -507,7 +507,7 @@ async def eliminar_nodo(room_id: str):
 
         mi_id = None
 
-        if res_whoami.status_code != 200:
+        if res_whoami.status_code == 200:
             mi_id = res_whoami.json().get("user_id")
 
         # 2. Petición para vacíar la sala de usuarios (todos menos nosotros)
@@ -532,6 +532,7 @@ async def eliminar_nodo(room_id: str):
                     await client.post(
 
                         f"{base_url}/_matrix/client/v3/rooms/{room_id}/kick",
+                        headers=headers,
                         json=parametros
                     )
             
