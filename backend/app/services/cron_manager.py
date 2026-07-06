@@ -62,5 +62,6 @@ def iniciar_cron():
     )
 
     scheduler.start()
+    print("[*] SISTEMA CRON INICIADO: Temporizador de franjas horarias activado (Europe/Madrid).")
 
     
