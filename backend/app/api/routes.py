@@ -30,7 +30,7 @@ from app.services.matrix_api import(
 from app.services.prado_api import(
 
     obtener_alumnos_prado_service, 
-    obtener_total_alumnos_usuario, 
+    obtener_total_usuarios_usuario, 
     obtener_total_asignaturas_usuario, 
     obtener_asignaturas_usuario
 )
@@ -368,7 +368,7 @@ async def get_inicio_estadisticas(db: Session = Depends(get_db)):
 
     # 1. PRADO
     total_asignaturas_prado = await obtener_total_asignaturas_usuario(user_id)
-    total_alumnos_prado = await obtener_total_alumnos_usuario(user_id)
+    total_alumnos_prado = await obtener_total_usuarios_usuario(user_id)
 
     # 2. MATRIX 
     total_salas_matrix = db.query(SalaAsignatura).count()

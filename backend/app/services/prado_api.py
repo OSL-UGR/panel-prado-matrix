@@ -39,11 +39,11 @@ async def obtener_total_asignaturas_usuario(user_id : str):
                 break
     return total
 
-async def obtener_total_alumnos_usuario(user_id : str):
+async def obtener_total_usuarios_usuario(user_id : str):
     """
     Devuelve el número total de alumnos únicos que tiene un profesor en todas sus asignaturas.
     """
-    alumnos_unicos = set()
+    usuarios_unicos = set()
     
     for asignatura in CATALOGO["asignaturas"]:
         usuarios = asignatura.get("usuarios_matriculados", [])
@@ -53,11 +53,10 @@ async def obtener_total_alumnos_usuario(user_id : str):
         
         if es_su_asignatura:
             for usuario in usuarios:
-                # Contamos a todos menos al propio profesor
-                if usuario.get("matrix_id") != user_id:
-                    alumnos_unicos.add(usuario.get("matrix_id"))
+
+                    usuarios_unicos.add(usuario.get("matrix_id"))
                     
-    return len(alumnos_unicos)
+    return len(usuarios_unicos)
 
 async def obtener_asignaturas_usuario(user_id: str, db: Session):
     """
