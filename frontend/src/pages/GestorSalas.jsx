@@ -4,6 +4,7 @@ import { fetchAsignaturasPrado, fetchEstructuraSalas, fetchCrearSala, fetchEdita
 // Componente para dibujar el árbol
 const NodoArbol = ({ nodo, nivel = 0 , abrirModalCrearNodo, abrirModalEditarNodo}) => {
   const esEspacio = nodo.tipo === 'espacio';
+  const esSalaAviso = nodo.tipo ==='sala_avisos';
   const numHijos = (nodo.hijos?.length || 0) + 1; //El numero de salas mas el nodo de añadir (+)
 
   return (
@@ -21,9 +22,11 @@ const NodoArbol = ({ nodo, nivel = 0 , abrirModalCrearNodo, abrirModalEditarNodo
           {/* Imagen de fondo del nodo */}
           <div className="absolute opacity-50 pointer-events-none">
             <img 
-              src={esEspacio 
+              src={esEspacio
                 ? "https://i.pinimg.com/736x/cb/25/1b/cb251b7b8ab7be51f69067da26770afb.jpg" //Si es un espacio
-                : "https://i.pinimg.com/736x/fd/0a/88/fd0a886a160facf6c2de40b690019a36.jpg" //Si es una sala
+                : esSalaAviso
+                  ? "URL_DE_LA_IMAGEN_DE_AVISOS" //Si es un sala de avisos
+                  : "https://i.pinimg.com/736x/fd/0a/88/fd0a886a160facf6c2de40b690019a36.jpg" //Si es una sala normal
               }
               alt="Fondo nodo" 
               className="w-full h-full object-cover" 
