@@ -13,6 +13,10 @@ from app.models.sala_asignaturas import SalaAsignatura, TipoSala
 from app.models.usuarios import Usuario
 from app.models.cronogramas import Cronograma
 
+# Para que los cambios temporales se ejecuten al momento
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 # Importamos los dos servicios
 from app.services.matrix_api import(
 
@@ -24,7 +28,8 @@ from app.services.matrix_api import(
     arreglar_jerarquia,
     crear_nodo,
     editar_nodo,
-    eliminar_nodo
+    eliminar_nodo,
+    accionar_celda_horario
 )
 
 from app.services.prado_api import(
@@ -440,5 +445,23 @@ async def actualizar_cronograma(asignatura_id: str, room_id: str, datos: Actuali
     # SObrescribimos la mattriz dada en la bd
     crono_db.configuracion = datos.matriz
     db.commit()
+
+    # Aquí ejecutamos los cambios de forma instantánea
+
+    try:
+        ZONA_HORARIA = ZoneInfo("Europe/Madrid")
+        ahora = datetime.now(ZONA_HORARIA)
+        dia_actual = ahora.weekday()
+        hora_actual = ahora.hour
+
+        # Leemos el estado de el instante actual en la matriz
+        estado_actual = datos.matriz[dia_actual][hora_actual]
+
+        # Ejecutamos la petición sobre la sala
+        await accionar_celda_horario(room_id, estado_actual == 1)
+
     
+    except Exception as e:
+        print(f"ERROR: Error al aplicar el cambio de forma instantánea: {str(e)}")    
+
     return {"status": "success"}
