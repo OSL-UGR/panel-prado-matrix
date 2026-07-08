@@ -257,6 +257,39 @@ async def crear_sala(asignatura_id: str, datos: CrearNodoRequest, db: Session = 
     nuevo_room_id = res_crear["room_id"]
     alumnos_añadidos = 0
 
+    # 2. Guardamos la sala en la bd 
+
+    id_padre = datos.id_padre
+
+    if not id_padre: # Identificamos el nodo raíz viendo que no tiene padre
+        espacio_raiz = db.query(SalaAsignatura).filter(
+            SalaAsignatura.id_asignatura_prado == asignatura_id,
+            SalaAsignatura.id_padre == None
+        ).first
+
+        if espacio_raiz:
+            id_padre = espacio_raiz.id_matrix_sala
+
+    nueva_sala_bd = SalaAsignatura(
+        id_asignatura_prado=asignatura_id,
+        id_matrix_sala=nuevo_room_id,
+        alias_principal=datos.nombre,
+        descripcion=datos.descripcion,
+        tipo=datos.tipo, 
+        id_padre=id_padre
+    )
+
+    db.add(nueva_sala_bd)
+    db.fluh() # Para generar el id interno antes del commit
+
+        # Si es una sala normal o de avisos, le preparamos su cronograma
+    if datos.tipo in ["sala", "sala_avisos"]:
+        db.add(Cronograma(sala_id=nueva_sala_bd.id))
+
+
+    db.commit()
+    
+
     # SI decidió matricularlos tenemos que insertarlos a mano
     if datos.auto_añadir:
 
