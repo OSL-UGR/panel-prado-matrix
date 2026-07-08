@@ -164,7 +164,8 @@ async def crear_espacio_asignatura(nombre_asignatura: str,descripcion: str,  id_
                 "state_key": "",
                 "content": {
                     "users": { 
-                        id_profesor: 100 # El profesor tiene permisos de administrador
+                        id_profesor: 100, # El profesor tiene permisos de administrador
+                        settings.MATRIX_BOT_ID: 100 # Introducimos el bot con permisos de admin para enviar mensajes programados
                     }
                 }
             }
@@ -184,10 +185,22 @@ async def crear_espacio_asignatura(nombre_asignatura: str,descripcion: str,  id_
         if res.status_code != 200:
             return {"ERROR": f"Fallo al crear el espacio en Matrix: {res.status_code}"}
         
+        room_id = res.json().get("room_id")
 
-        return {
-            "room_id": res.json().get("room_id")
-        }
+        # Insertamos en el espacio al profesor que realiza la petición y al bot de mensajes programados
+        await client.post(
+            f"{settings.SYNAPSE_ADMIN_URL}/v1/join/{room_id}",
+            headers=headers,
+            json={"user_id": settings.MATRIX_BOT_ID}
+        )
+                
+        await client.post(
+            f"{settings.SYNAPSE_ADMIN_URL}/v1/join/{room_id}",
+            headers=headers,
+            json={"user_id": id_profesor}
+        )
+        
+        return {"room_id": room_id}
     
 async def insertar_alumnos_sala(room_id:str, ids_alumnos: list):
     """
@@ -307,6 +320,13 @@ async def arreglar_jerarquia(espacio_raiz_id : str, asignatura_id: str, db: Sess
                         tipo = TipoSala.sala
 
                     padre_id = mapa_padres.get(nueva_sala["room_id"], espacio_raiz_id)
+                    
+                    # Insertamos el bot en las salas
+                    await client.post(
+                        f"{settings.SYNAPSE_ADMIN_URL}/v1/join/{nueva_sala['room_id']}",
+                        headers=headers,
+                        json={"user_id": settings.MATRIX_BOT_ID}
+                    )
 
                     # Construimos la sala para insertarla en la base de datos
                     sala_insertar = SalaAsignatura(
@@ -357,7 +377,7 @@ async def arreglar_jerarquia(espacio_raiz_id : str, asignatura_id: str, db: Sess
 
 async def crear_nodo(nombre: str, descripcion:str, tipo: str, id_padre: str, id_profesor: str):
     """
-    Crea una nueva sala/espacio según lo especificado, añadiendo nodos a la jerarquía de una asignatura.
+    Crea una nueva sala/espacio según lo especificado, añadiendo nodos a la jerarquía de una asignatura y forzando la entrada del profesor y el bot.
     """
 
     headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
@@ -382,6 +402,17 @@ async def crear_nodo(nombre: str, descripcion:str, tipo: str, id_padre: str, id_
                         }
                     ]
                 }
+            },
+            {
+                "type": "m.room.power_levels",
+                "state_key": "",
+                "content": {
+                    "users": {
+                        id_profesor: 100,
+                        settings.MATRIX_BOT_ID: 100  
+                    },
+                    "events_default": 50 if tipo == TipoSala.sala_avisos.value else 0
+                }
             }
         ]
     }
@@ -393,12 +424,6 @@ async def crear_nodo(nombre: str, descripcion:str, tipo: str, id_padre: str, id_
 
             "type": "m.space",
             "m.federate": False
-        }
-    # Para escribir necesitarán de permisos mínimos con nivel 50
-    elif tipo == TipoSala.sala_avisos.value:
-        payload_base["power_level_content_override"] = {
-            "events_default": 50,
-            "users": {id_profesor: 100}
         }
 
     async with httpx.AsyncClient() as client:
@@ -415,9 +440,21 @@ async def crear_nodo(nombre: str, descripcion:str, tipo: str, id_padre: str, id_
             return {"ERROR": f"Fallo al crear el nodo en Matrix: {res_crear.status_code} - {res_crear.text}"}
         
         nuevo_room_id = res_crear.json().get("room_id")
+
+        # Insertamos en el espacio al profesor que realiza la petición y al bot de mensajes programados
+        await client.post(
+            f"{settings.SYNAPSE_ADMIN_URL}/v1/join/{nuevo_room_id}",
+            headers=headers,
+            json={"user_id": settings.MATRIX_BOT_ID}
+        )
+                
+        await client.post(
+            f"{settings.SYNAPSE_ADMIN_URL}/v1/join/{nuevo_room_id}",
+            headers=headers,
+            json={"user_id": id_profesor}
+        )
         
         # 2 Lo vinculamos con el espacio del padre
-
         res_vinculo = await client.put(
 
             f"{settings.MATRIX_URL}/rooms/{id_padre}/state/m.space.child/{nuevo_room_id}",
@@ -481,6 +518,13 @@ async def editar_nodo(room_id: str, nombre: str, descripcion: str, tipo: str, id
                 else:
                     power_levels["events_default"] = 0
 
+
+                # Reestructuramos los permisos del progrsor y el bot
+                if "users" not in power_levels:
+                    power_levels["users"] = {}
+                power_levels["users"][id_profesor] = 100
+                power_levels["users"][settings.MATRIX_BOT_ID] = 100
+
                 await client.put(
                     f"{settings.MATRIX_URL}/rooms/{room_id}/state/m.room.power_levels/",
                     headers=headers,
@@ -536,9 +580,9 @@ async def eliminar_nodo(room_id: str):
         if res_usuarios.status_code == 200 and mi_id != None:
             usuarios = res_usuarios.json().get("joined",{})
 
-            # Echamos a todos los usuarios (menos a nosotros mismos el administrador)
+            # Echamos a todos los usuarios (menos a nosotros mismos el administrador y el bot)
             for user_id in usuarios.keys():
-                if user_id != mi_id:
+                if user_id != mi_id and user_id != settings.MATRIX_BOT_ID:
 
                     parametros ={
                         "user_id": user_id, 
@@ -551,6 +595,12 @@ async def eliminar_nodo(room_id: str):
                         headers=headers,
                         json=parametros
                     )
+
+            # Echamos al bot con su propio token        
+            await client.post(
+                f"{settings.MATRIX_URL}/rooms/{room_id}/leave",
+                headers={"Authorization": f"Bearer {settings.MATRIX_BOT_TOKEN}"}
+            )
             
             # Una vez expulsado a todos, nos salimos nosotros mismos 
             await client.post(
@@ -621,3 +671,28 @@ async def accionar_celda_horario(room_id: str, cerrar: bool):
             return {"ERROR": f"Fallo al actualizar los permisos de la sala: {res_actualizar.status_code} - {res_actualizar.text}"}
         
         return {"status": "success"}
+
+async def enviar_mensaje_bot(room_id: str, texto: str):
+    """
+    Envía un mensaje utilizando el bot en una sala seleccionada.
+    """
+
+    headers = {"Authorization": f"Bearer {settings.MATRIX_BOT_TOKEN}"}
+    payload = {
+        "msgtype": "m.text",
+        "body": texto
+    }
+
+    async with httpx.AsyncClient() as client:
+
+        res = await client.post(
+            f"{settings.MATRIX_URL}/rooms/{room_id}/send/m.room.message",
+            headers=headers,
+            json=payload
+        )
+
+        if res.status_code != 200:
+            return {"ERROR": f"El bot no pudo procesar el envío: {res.status_code} - {res.text}"}
+        
+        return {"status": "success", "event_id": res.json().get("event_id")}
+
