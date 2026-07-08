@@ -280,16 +280,14 @@ async def crear_sala(asignatura_id: str, datos: CrearNodoRequest, db: Session = 
     )
 
     db.add(nueva_sala_bd)
-    db.fluh() # Para generar el id interno antes del commit
+    db.flush() # Para generar el id interno antes del commit
 
-        # Si es una sala normal o de avisos, le preparamos su cronograma
+    # Si es una sala normal o de avisos, le preparamos su cronograma
     if datos.tipo in ["sala", "sala_avisos"]:
         db.add(Cronograma(sala_id=nueva_sala_bd.id))
 
-
     db.commit()
     
-
     # SI decidió matricularlos tenemos que insertarlos a mano
     if datos.auto_añadir:
 
