@@ -40,3 +40,9 @@ class SalaAsignatura(Base):
         uselist=False, # Para que cada sala solo pueda tener un cronograma
         cascade="all, delete-orphan"
     )
+
+    mensajes_programados = relationship(
+        "MensajeProgramado",
+        back_populates="sala",
+        cascade="all, delete-orphan"
+    )
