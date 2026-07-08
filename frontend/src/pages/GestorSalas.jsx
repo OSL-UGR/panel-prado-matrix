@@ -25,7 +25,7 @@ const NodoArbol = ({ nodo, nivel = 0 , abrirModalCrearNodo, abrirModalEditarNodo
               src={esEspacio
                 ? "https://i.pinimg.com/736x/cb/25/1b/cb251b7b8ab7be51f69067da26770afb.jpg" //Si es un espacio
                 : esSalaAviso
-                  ? "URL_DE_LA_IMAGEN_DE_AVISOS" //Si es un sala de avisos
+                  ? "https://i.pinimg.com/736x/b5/fe/23/b5fe23fdff23565de2d4509d3f065934.jpg" //Si es un sala de avisos
                   : "https://i.pinimg.com/736x/fd/0a/88/fd0a886a160facf6c2de40b690019a36.jpg" //Si es una sala normal
               }
               alt="Fondo nodo" 
