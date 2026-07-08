@@ -364,8 +364,8 @@ export default function CronogramaSalas(){
                                                 <div className="absolute opacity-50 pointer-events-none">
                                                     <img 
                                                         src={esActiva 
-                                                            ? "https://i.pinimg.com/736x/cb/25/1b/cb251b7b8ab7be51f69067da26770afb.jpg" //Si es un espacio
-                                                            : "https://i.pinimg.com/736x/fd/0a/88/fd0a886a160facf6c2de40b690019a36.jpg" //Si es una sala
+                                                            ? "https://i.pinimg.com/736x/b5/fe/23/b5fe23fdff23565de2d4509d3f065934.jpg" // Si es activa
+                                                            : "https://i.pinimg.com/736x/fd/0a/88/fd0a886a160facf6c2de40b690019a36.jpg" 
                                                         }                                                
                                                         alt="Fondo nodo" 
                                                         className="w-full h-full object-cover" 

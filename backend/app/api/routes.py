@@ -10,6 +10,7 @@ from pydantic import BaseModel # Para definir models de cara a los cuestionarios
 from typing import List
 
 from app.models.sala_asignaturas import SalaAsignatura, TipoSala
+from app.models.mensajes_programados import MensajeProgramado, EstadoMensaje
 from app.models.usuarios import Usuario
 from app.models.cronogramas import Cronograma
 
@@ -62,14 +63,14 @@ class EditarNodoRequest(BaseModel):
 class ActualizarCronogramaRequest(BaseModel):
     matriz: List[List[int]] # Esperamos una matriz de 7*24
 
-class CrearAvisoRequest(BaseModel):
+class CrearMensajeProgRequest(BaseModel):
     sala_id: int
     contenido: str
     fecha_envio: datetime
 
-class EditarAvisoRequest(BaseModel):
+class EditarMensajeProgRequest(BaseModel):
     contenido: str
-    fecha_envio:str
+    fecha_envio: datetime
 
 router = APIRouter() # Lo que hace es crear un grupo de rutas. En el main tendremos que incluirlo "app.include_router(router)"
 
@@ -505,3 +506,103 @@ async def actualizar_cronograma(asignatura_id: str, room_id: str, datos: Actuali
         print(f"ERROR: Error al aplicar el cambio de forma instantánea: {str(e)}")    
 
     return {"status": "success"}
+
+# ==========================================
+# RUTAS DE LA BASE DE DATOS DE MENSAJES PROGRAMADOS (AVISOSs)
+# ==========================================
+
+@router.get("/prado/mensajes")
+async def get_mensajes_pendientes(db: Session = Depends(get_db)):    
+    """
+    Devuelve todos los mensajes programados en estado de pendientes ordenador del más inminente al más lejano.
+    """
+
+    # Consultamos todos los mensajes
+    mensajes_db = db.query(MensajeProgramado).join(SalaAsignatura)\
+        .filter(MensajeProgramado.estado == EstadoMensaje.pendiente)\
+        .order_by(MensajeProgramado.fecha_envio.asc())\
+        .all()
+    
+    mensajes = []
+    for mensaje in mensajes_db:
+        mensajes.append({
+            "id": mensaje.id,
+            "sala_id": mensaje.sala_id,
+            "room_id": mensaje.sala.id_matrix_sala,
+            "nombre_sala": mensaje.sala.alias_principal,
+            "asignatura_id": mensaje.sala.id_asignatura_prado,
+            "contenido": mensaje.contenido,
+            "fecha_envio": mensaje.fecha_envio.isoformat(),
+            "tipo_sala": mensaje.sala.tipo.value
+
+        })
+
+    return {
+        "status": "success",
+        "mensajes": mensajes
+    }
+
+@router.post("/prado/mensajes")
+async def crear_mensaje_programado(datos: CrearMensajeProgRequest, db: Session = Depends(get_db)):
+    """
+    Registra un nuevo mensaje programado en la bd a partir de la informacióon recogida del formulario
+    """
+
+    # Verificamos que la sala destino exista en la  base de datos
+    sala_existe = db.query(SalaAsignatura).filter(SalaAsignatura.id == datos.sala_id).first()
+
+    if not sala_existe:
+        raise HTTPException(status_code=404, detail="La sala seleccionada para el mensaje programado no existe.")
+    
+    # Realizamos el registro
+    nuevo_mensaje = MensajeProgramado(
+        sala_id=datos.sala_id,
+        contenido=datos.contenido,
+        fecha_envio=datos.fecha_envio,
+        estado=EstadoMensaje.pendiente
+    )
+
+    db.add(nuevo_mensaje)
+    db.commit()
+
+    return {"status": "success"}
+
+@router.put("/prado/mensajes/{mensaje_id}")
+async def modificar_mensaje_programado(mensaje_id: int, datos: EditarMensajeProgRequest, db: Session = Depends(get_db)):
+    """
+    Permite modificar el mensaje o reprogramar la hora de un mensaje en estado pendiente
+    """
+
+    mensaje_db = db.query(MensajeProgramado).filter(
+        MensajeProgramado.id == mensaje_id,
+        MensajeProgramado.estado == EstadoMensaje.pendiente 
+    ).first()
+
+    if not mensaje_db:
+        raise HTTPException(status_code=404, detail="El mensaje seleccionado para modificar no existe o no está marcado como pendiente.")
+    
+    # Aplicamos las modificaciones
+    mensaje_db.contenido = datos.contenido
+    mensaje_db.fecha_envio = datos.fecha_envio
+    db.commit()
+
+    return {"status": "success"}
+
+@router.delete("/prado/mensajes/{mensaje_id}")
+async def eliminar_mensaje_programado(mensaje_id: int, db: Session = Depends(get_db)):
+    """
+    Elimina un mensaje programado de la base de datos.
+    """
+
+    mensaje_db = db.query(MensajeProgramado).filter(MensajeProgramado.id == mensaje_id).first()
+
+    if not mensaje_db:
+        raise HTTPException(status_code=404, detail="El mensaje seleccionado para borrar no existe.")
+    
+    db.delete(mensaje_db)
+    db.commit()
+
+    return {"status": "success"}
+
+
+
