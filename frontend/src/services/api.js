@@ -240,3 +240,97 @@ export const fetchPutCronograma = async (asignaturaId, roomId, datosCronograma) 
         throw error;
     }
 };
+
+/**
+ * MENSAJES PROGRAMADOS: Obtiene todos los mensajes pendientes (GET)
+ */
+export const fetchGetMensajesProgramados = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/prado/mensajes`);        
+        
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || `Error en la petición: ${response.status}`);
+        }
+        return await response.json(); 
+    } catch (error) {
+        console.error("Error al obtener los mensajes programados:", error);
+        throw error;
+    }
+};
+
+/**
+ * MENSAJES PROGRAMADOS: Crea un nuevo mensaje programado  (POST)
+ */
+export const fetchCrearMensajeProgramado = async (datosMensaje) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/prado/mensajes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            // datosMensaje debe ser un objeto: { sala_id: 1, contenido: "...", fecha_envio: "2026-10-05T10:00:00Z" }
+            body: JSON.stringify(datosMensaje) 
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || `Error en la petición: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error("Error al crear el mensaje programado:", error);
+        throw error;
+    }
+};
+
+/**
+ * MENSAJES PROGRAMADOS: Edita el texto o la fecha de un mensaje pendiente (PUT)
+ */
+export const fetchEditarMensajeProgramado = async (mensajeId, datosMensaje) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/prado/mensajes/${encodeURIComponent(mensajeId)}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            // datosMensaje debe ser: { contenido: "...", fecha_envio: "..." }
+            body: JSON.stringify(datosMensaje)
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || `Error en la petición: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error(`Error al editar el mensaje programado ${mensajeId}:`, error);
+        throw error;
+    }
+};
+
+/**
+ * MENSAJES PROGRAMADOS: Elimina un mensaje programado de la cola (DELETE)
+ */
+export const fetchEliminarMensajeProgramado = async (mensajeId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/prado/mensajes/${encodeURIComponent(mensajeId)}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || `Error en la petición: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error(`Error al cancelar el mensaje programado ${mensajeId}:`, error);
+        throw error;
+    }
+};
