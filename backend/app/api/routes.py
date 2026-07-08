@@ -62,6 +62,15 @@ class EditarNodoRequest(BaseModel):
 class ActualizarCronogramaRequest(BaseModel):
     matriz: List[List[int]] # Esperamos una matriz de 7*24
 
+class CrearAvisoRequest(BaseModel):
+    sala_id: int
+    contenido: str
+    fecha_envio: datetime
+
+class EditarAvisoRequest(BaseModel):
+    contenido: str
+    fecha_envio:str
+
 router = APIRouter() # Lo que hace es crear un grupo de rutas. En el main tendremos que incluirlo "app.include_router(router)"
 
 # ==========================================
