@@ -471,7 +471,7 @@ export default function CronogramaSalas(){
                                 </div>
 
                                 {/* BOTÓN DE GUARDADO */}
-                                <div className="flex justify-end mt-4">
+                                <div className="flex justify-center mt-4">
                                     <button
                                         type="button"
                                         onClick={handleGuardarCrono}
