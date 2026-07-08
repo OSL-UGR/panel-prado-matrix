@@ -442,7 +442,7 @@ export default function CronogramaSalas(){
                                                 </div>
                                                 
                                                 {/* Panel vertical de las horas (uno para cada día) */}
-                                                <div className="flex flex-col gap-1 h-[400px] overflow-y-auto pr-2 scrollbar-thin  ">
+                                                <div className="flex flex-col gap-1 h-140 overflow-y-auto pr-2 scrollbar-thin  ">
                                                     {filaHoras.map((estado, hora) => {
 
                                                         // Formateamos las horas para que tengan todas el mismo formato
