@@ -14,6 +14,8 @@ class Settings:
     SYNAPSE_ADMIN_URL: str = os.getenv("SYNAPSE_ADMIN_URL")
     MATRIX_TOKEN: str = os.getenv("MATRIX_TOKEN")
     FRONTEND_URL: str = os.getenv("FRONTEND_URL")
+    MATRIX_BOT_TOKEN: str = os.getenv("MATRIX_BOT_TOKEN")
+    MATRIX_BOT_ID: str = os.getenv("MATRIX_BOT_ID")
 
 
 settings = Settings() # Creamos la instancia para usarla en el resto del proyecto y así acceder a las variables
