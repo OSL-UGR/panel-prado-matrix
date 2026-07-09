@@ -533,6 +533,7 @@ async def get_mensajes_pendientes(db: Session = Depends(get_db)):
             "asignatura_id": mensaje.sala.id_asignatura_prado,
             "contenido": mensaje.contenido,
             "fecha_envio": mensaje.fecha_envio.isoformat(),
+            "fecha_creacion": mensaje.fecha_creacion.isoformat(),
             "tipo_sala": mensaje.sala.tipo.value
 
         })
