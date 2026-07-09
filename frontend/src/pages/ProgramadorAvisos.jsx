@@ -357,9 +357,14 @@ export default function ProgramadorAvisos(){
 
                     ) : salas.length === 0 ? ( // Si no hubiese salas en la asignatura
                         
-                        <div className="flex-1 flex flex-col items-center justify-center text-center text-red-500 font-bold border-2 border-dashed border-red-500/50 p-4 gap-2">
-                            <span className="text-sm text-bordes">No hay salas disponibles en esta asignatura para enviar avisos.</span>
-                        </div>
+                    <div className="flex-1 border-2 border-dashed border-azul-turquesa/50 bg-azul-turquesa/5 p-8 flex flex-col items-center justify-center text-center gap-6">
+                        <h2 className="text-2xl lg:text-2xl text-azul-turquesa font-bold max-w-2xl leading-relaxed">
+                            LA ASIGNATURA NO CONTIENE NINGUNA SALA OPERATIVA. <br />
+                        </h2>
+                        <p className="text-sm text-bordes max-w-xl">
+                            Crea salas desde el [ GESTOR DE SALAS ] para poder automatizar sus horarios de acceso.
+                        </p>
+                    </div>
 
                     ) : ( // Mostramos el formulario
                         <form onSubmit={handleCrearMensaje} className="flex flex-col gap-6 flex-1">
