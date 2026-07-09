@@ -480,7 +480,7 @@ export default function CronogramaSalas(){
                                 <div className="relative grid grid-cols-7 gap-2 border-4 border-texto bg-fondo p-4">
                                     
                                     {/* Imagen de fondo del panel */}
-                                    <div className="absolute inset-0 opacity-25 pointer-events-none">
+                                    <div className="absolute inset-0 opacity-20 pointer-events-none">
                                         <img
                                             src="https://i.pinimg.com/736x/29/59/9e/29599e739b0c39d64e9d17941f18b25b.jpg"
                                             alt="Fondo del panel de la matriz."
