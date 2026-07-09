@@ -6,6 +6,7 @@ import enum
 from sqlalchemy import Column, Integer,ForeignKey, Text, DateTime, Enum
 from app.core.database import Base
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 class EstadoMensaje(enum.Enum):
     pendiente = "pendiente"
@@ -28,6 +29,7 @@ class MensajeProgramado(Base):
     contenido = Column(Text, nullable=False)
 
     fecha_envio = Column(DateTime(timezone=True), nullable=False)
+    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
 
     estado = Column(Enum(EstadoMensaje), default=EstadoMensaje.pendiente, nullable=False)
 
