@@ -13,11 +13,21 @@ export default function CronogramaSalas(){
     // ---DATOS DE LA BD---
     const [matriz, setMatriz] = useState([]); // Matriz 7x24 del cronograma actual
 
-    // ---DATOS GESTIÓN INTERFAZ...
+    // ---DATOS GESTIÓN INTERFAZ---
     const [cargando, setCargando] = useState(true); // Para bloquear la interfaz inicial mientras cargamos desde el servidor pa pagina entera
     const [cargandoSalas, setCargandoSalas] = useState(false); // Lo mismo pero sobre el panel de salas de la asignatura actual
     const [cargandoCron, setCargandoCron] = useState(false);
     const [direccion, setDireccion] = useState(null); // Para el carrusel
+
+    // ---DATOS GESTIÓN ARRASTRAR Y SELECCIONAR CON EL RATÓN---
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragValue, setDragValue] = useState(null); 
+    const [hayCambios, setHayCambios] = useState(false);
+
+    const len = asignaturas.length
+    const asigAnterior = len > 1 ? asignaturas[(activaIndex - 1 + len) % len] : null;
+    const asigActual = asignaturas[activaIndex];
+    const asigSiguiente = len > 1 ? asignaturas[(activaIndex + 1) % len] : null;
 
     // Función auxiliar para cargar lSOLO LAS SALAS de la asignatura
     const cargarEstructura = async (asignaturaId) => {
@@ -65,7 +75,7 @@ export default function CronogramaSalas(){
         }
     }
 
-    const handleAlternarHora = (dia, hora) => {
+    const handleAlternarHora = (dia, hora, estadoAlArrastrar = null) => {
 
         //Copiamos la matriz
         const nuevaMatriz = [];
@@ -76,16 +86,56 @@ export default function CronogramaSalas(){
             nuevaMatriz.push(copiaFila);
         }
 
-        if(nuevaMatriz[dia][hora] === 0){
+        // Revisamos si la función se ha ejecutado arastrando o bien clicando directamente. 
+        if (estadoAlArrastrar != null){
 
-            nuevaMatriz[dia][hora] = 1;
+            nuevaMatriz[dia][hora] = estadoAlArrastrar;
         }
         else{
+            if(nuevaMatriz[dia][hora] === 0){
 
-            nuevaMatriz[dia][hora] = 0;
+                nuevaMatriz[dia][hora] = 1;
+            }
+            else{
+
+                nuevaMatriz[dia][hora] = 0;
+            }
         }
 
         setMatriz(nuevaMatriz);
+        setHayCambios(true); // Para indicar que ha habido cambios
+    };
+
+    // Se ejecuta cuando se hace el primer click y se comienza a arrastrar
+    const handleMouseDown = (dia, hora) => {
+
+        setIsDragging(true);
+        
+        // Si la celda era 0, pintaremos 1. Si era 1, pintaremos 0.
+        const estadoAPintar = matriz[dia][hora] === 0 ? 1 : 0; 
+        setDragValue(estadoAPintar);
+        
+        // Alternamos la hora de la celda en específico
+        handleAlternarHora(dia, hora, estadoAPintar);
+    };
+
+    // Si el usuario pulsa fuera de la cuadricula, se desactiva el modo aggarre
+    useEffect(() => {
+        const handleMouseUp = () => {
+            setIsDragging(false);
+            setDragValue(null);
+        };
+
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => window.removeEventListener('mouseup', handleMouseUp);
+    }, [isDragging]);
+
+    // Se ejecuta de manera continua al pasar por encima de las cledas con el click encima
+    const handleMouseEnter = (dia, hora) => {
+
+        if(isDragging && dragValue !== null){
+            handleAlternarHora(dia, hora, dragValue);
+        }
     };
 
     const handleGuardarCrono = async () => {
@@ -93,10 +143,21 @@ export default function CronogramaSalas(){
 
         try{
             await fetchPutCronograma(asigActual.id, salaActivaId, {matriz});
+            setHayCambios(false);
         } catch(error){
 
             alert("ERROR: No se ha podido guardar el cronograma: " + error.message)
         }
+    };
+
+    // Función auxiliar para que avise al cambiar de sala si hay cambios pendientes
+    const handleCambioSala = async (roomId) => {
+        if (hayCambios) {
+            const confirmar = window.confirm("Tienes cambios sin guardar en el panel de horarios. ¿Seguro que deseas cambiar de sala y perder los cambios?");
+            if (!confirmar) return;
+        }
+        setSalaActivaId(roomId);
+        await cargarMatriz(asigActual.id, roomId);
     };
 
     const DIAS = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO', 'DOMINGO'];
@@ -177,11 +238,6 @@ export default function CronogramaSalas(){
             </div>
         );
     }
-
-    const len = asignaturas.length
-    const asigAnterior = len > 1 ? asignaturas[(activaIndex - 1 + len) % len] : null;
-    const asigActual = asignaturas[activaIndex];
-    const asigSiguiente = len > 1 ? asignaturas[(activaIndex + 1) % len] : null;
 
     return(
         <div className="flex flex-col gap-8 font-mono min-h-full p-4">
@@ -354,10 +410,7 @@ export default function CronogramaSalas(){
                                 const esActiva = sala.room_id === salaActivaId;
                                 return(
                                     <div key={sala.room_id} className="flex justify-center">
-                                            <div onClick={()=> {
-                                                setSalaActivaId(sala.room_id)
-                                                cargarMatriz(asigActual.id, sala.room_id);
-                                            }}>
+                                        <div onClick={() => handleCambioSala(sala.room_id)}>                                            
                                             <div className="group relative flex flex-col justify-center text-center overflow-hidden border-2 cursor-pointer rounded-full w-40 h-40 border-texto duration-200 hover:border-azul-turquesa hover:shadow-[0_0_20px_var(--color-azul-turquesa)] bg-paneles z-10">
 
                                                 {/* Imagen de fondo del nodo */}
@@ -442,7 +495,7 @@ export default function CronogramaSalas(){
                                                 </div>
                                                 
                                                 {/* Panel vertical de las horas (uno para cada día) */}
-                                                <div className="flex flex-col gap-1 h-140 overflow-y-auto pr-2 scrollbar-thin  ">
+                                                <div className="flex flex-col gap-1 h-140 overflow-y-auto pr-2 scrollbar-thin select-none ">
                                                     {filaHoras.map((estado, hora) => {
 
                                                         // Formateamos las horas para que tengan todas el mismo formato
@@ -452,7 +505,8 @@ export default function CronogramaSalas(){
                                                         return (
                                                             <div
                                                                 key={hora}
-                                                                onClick={() => handleAlternarHora(dia, hora)}
+                                                                onMouseDown={() => handleMouseDown(dia, hora)}
+                                                                onMouseEnter={() => handleMouseEnter(dia, hora)}
                                                                 className={`border border-bordes/64 p-2 text-center text-xs font-mono font-bold tracking-wider cursor-pointer select-none transition-all duration-150 ${
                                                                     estado === 1 
                                                                     ? 'border-red-500 bg-red-950/50 text-red-500 ]' 
