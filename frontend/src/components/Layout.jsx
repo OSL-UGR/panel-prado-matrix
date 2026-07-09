@@ -30,7 +30,6 @@ export default function Layout() {
     { path: '/salas', label: 'GESTOR DE SALAS' },
     { path: '/avisos', label: 'PROG. DE AVISOS' },
     { path: '/horarios', label: 'CRONO. DE SALAS' },
-    { path: '/sanciones', label: 'SANCIONES' },
     { path: '/logs', label: 'REGISTRO DE LOGS' },
   ];
 

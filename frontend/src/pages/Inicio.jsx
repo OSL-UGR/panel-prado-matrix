@@ -233,7 +233,16 @@ export default function Inicio() {
             };
 
             return (
-              <div key={asig.id} className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-8 items-center bg-paneles border border-bordes p-4 hover:border-texto transition-colors">
+              <div key={asig.id} className="relative grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-8 items-center bg-paneles border border-bordes p-4 hover:border-texto transition-colors">
+
+                {/* Imagen de fondo del panel */}
+                <div className="absolute inset-0 opacity-10 pointer-events-none">
+                    <img
+                        src="https://i.pinimg.com/736x/10/70/7c/10707c158c3bd2d6035aac0d6606acdd.jpg"
+                        alt="Fondo del panel de sincronización."
+                        className="w-full h-full object-cover"
+                    />
+                </div>
                 
                 {/* 1. INFO DE PRADO */}
                 <div className="flex flex-col">

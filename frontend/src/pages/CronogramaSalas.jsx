@@ -243,7 +243,7 @@ export default function CronogramaSalas(){
         <div className="flex flex-col gap-8 font-mono min-h-full p-4">
             {/* TÍTULO */}
             <h2 className="text-3xl text-texto font-black  tracking-widest border-b-4 border-texto pb-4 ]">
-                [ HORARIOS_DE_USO_EN_TUS_SALAS ]
+                [ TUS_HORARIOS_DE_USO_EN_SALAS ]
             </h2>
             {/* CARRUSEL DE ASIGNATURAS */}
             <div className="flex items-center justify-center w-full my-2 gap-4">
@@ -405,7 +405,17 @@ export default function CronogramaSalas(){
                         </label>
     
                         {/* Contenedor con scroll horizontal */}
-                        <div className="flex items-center justify-center gap-6 py-8 px-4 overflow-x-auto border-2 border-bordes bg-fondo scrollbar-thin scrollbar-thumb-bordes scrollbar-track-paneles">
+                        <div className="relative flex items-center justify-center gap-6 py-8 px-4 overflow-x-auto border-2 border-bordes bg-fondo scrollbar-thin scrollbar-thumb-bordes scrollbar-track-paneles">
+                            
+                            {/* Imagen de fondo del panel */}
+                            <div className="absolute inset-0 opacity-20 pointer-events-none">
+                                <img
+                                    src="https://i.pinimg.com/736x/9c/c6/59/9cc6593a2bbca73a572e9f1e7f711732.jpg"
+                                    alt="Fondo del panel horizontal"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            
                             {salas.map((sala) => {
                                 const esActiva = sala.room_id === salaActivaId;
                                 return(
@@ -467,14 +477,22 @@ export default function CronogramaSalas(){
                                 `}</style>
 
                                 {/* Contenedor Grid de 7 Columnas */}
-                                <div className="grid grid-cols-7 gap-2 border-4 border-texto bg-fondo p-4">
+                                <div className="relative grid grid-cols-7 gap-2 border-4 border-texto bg-fondo p-4">
                                     
+                                    {/* Imagen de fondo del panel */}
+                                    <div className="absolute inset-0 opacity-25 pointer-events-none">
+                                        <img
+                                            src="https://i.pinimg.com/736x/29/59/9e/29599e739b0c39d64e9d17941f18b25b.jpg"
+                                            alt="Fondo del panel de la matriz."
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
                                     {/* Recorremos cada uno de los 7 días */}
                                     {matriz.map((filaHoras, dia) => {
                          
                                         
                                         return (
-                                            <div key={dia} className="flex flex-col gap-2">
+                                            <div key={dia} className="relative flex flex-col gap-2">
                                                 
                                                 {/* Cabecera del Día */}
                                                 <div className="relative overflow-hidden border-2 border-bordes bg-paneles text-center py-2 border-b-4">
@@ -526,12 +544,22 @@ export default function CronogramaSalas(){
 
                                 {/* BOTÓN DE GUARDADO */}
                                 <div className="flex justify-center mt-4">
-                                    <button
-                                        type="button"
-                                        onClick={handleGuardarCrono}
-                                        className="px-8 py-4 border-4 border-azul-turquesa bg-fondo text-azul-turquesa hover:bg-azul-turquesa hover:text-fondo font-black tracking-widest"
-                                    >
-                                        [ GUARDAR_CAMBIOS ]
+
+
+                                    <button type="button" onClick={handleGuardarCrono} className="group relative overflow-hidden px-8 py-4 border-4 border-azul-turquesa bg-fondo text-azul-turquesa hover:bg-azul-turquesa hover:text-fondo font-black tracking-widest">
+                                        
+                                        {/* Imagen de fondo */}
+                                        <div className="absolute inset-0 opacity-10 pointer-events-none">
+                                            <img
+                                                src="https://i.pinimg.com/736x/5f/c5/76/5fc5764f3f5126cf7866f24fc04f0a56.jpg"
+                                                alt=""
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+
+                                        <span className="relative z-10">
+                                            [ GUARDAR_CAMBIOS ]
+                                        </span>
                                     </button>
                                 </div>
                             </div>
