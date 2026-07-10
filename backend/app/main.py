@@ -14,7 +14,6 @@ from app.services.cron_manager import iniciar_cron
 
 # Importamos los modelos para la hora de crear las tablas (parece que no hace nada pero es totalmente necesario)
 from app.models.sala_asignaturas import SalaAsignatura
-from app.models.usuarios import Usuario
 from app.models.cronogramas import Cronograma
 from app.models.mensajes_programados import MensajeProgramado
 
