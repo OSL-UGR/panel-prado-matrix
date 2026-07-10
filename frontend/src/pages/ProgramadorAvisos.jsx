@@ -279,6 +279,117 @@ export default function ProgramadorAvisos(){
   
   return(
   <div className="flex flex-col gap-8 font-mono min-h-full p-4">
+    {/* submodal para el borrado */}
+    {confirmarBorrado && (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70">
+            <div className="border-4 border-red-500 bg-fondo max-w-md p-6 text-center">
+                <h4 className="text-xl text-red-500 font-black tracking-widest mb-4">
+                    [ ¡CUIDADO! ]
+                </h4>
+                
+                <p className="text-sm leading-relaxed mb-6">
+                    ¿Seguro que quieres eliminar este mensaje programado? Esta acción es irreversible, no se enviará la información a Matrix.
+                </p>
+
+                <div className="flex justify-center gap-4">
+                    <button 
+                        type="button"
+                        onClick={() => setConfirmarBorrado(false)}
+                        className="px-6 py-2 border-2 border-bordes text-bordes hover:text-texto hover:border-texto font-bold tracking-widest"
+                    >
+                        CERRAR
+                    </button>
+                    
+                    <button 
+                        type="button"
+                        disabled={enviandoEdicion}
+                        onClick={handleEjecutarBorrado} 
+                        className="px-6 py-2 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-fondo font-bold tracking-widest disabled:opacity-50"
+                    >
+                        {enviandoEdicion ? 'ELIMINADO...' : 'SÍ, ELIMINAR'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    )}
+
+    {/* modal para la edición del mensaje */}
+    {modalEdicion.abierto && (
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/80">
+            <div className="border-4 border-texto bg-fondo w-full max-w-2xl p-8 ">
+                <h3 className="text-2xl text-texto font-black tracking-widest border-b-2 border-bordes/50 pb-4 mb-6">
+                    [ EDITAR_MENSAJE_PROGRAMADO ]
+                </h3>
+                
+                <form onSubmit={handleGuardarEdicion} className="flex flex-col gap-6">
+                    
+                    {/* Para la fecha de envío */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-azul-turquesa tracking-widest">NUEVA_HORA:</label>
+                        <input 
+                            required
+                            type="datetime-local" 
+                            min={obtenerFechaMinima()}
+                            className="bg-paneles border-2 border-bordes p-3 text-texto outline-none focus:border-azul-turquesa cursor-text"
+                            value={datosEdicion.fecha_envio}
+                            onChange={(e) => setDatosEdicion({ ...datosEdicion, fecha_envio: e.target.value })}
+                        />
+                    </div>
+
+                    {/* para el mensaje */}
+                    <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-end">
+                            <label className="text-xs text-azul-turquesa tracking-widest font-bold">NUEVO_MENSAJE:</label>
+                            <span className="text-xs text-bordes font-mono">
+                                {datosEdicion.contenido.length}/512
+                            </span>
+                        </div>
+                        <textarea 
+                            required
+                            rows="4" 
+                            maxLength={512}
+                            className="bg-paneles border-2 border-bordes p-3 text-texto outline-none focus:border-azul-turquesa resize-none"
+                            value={datosEdicion.contenido}
+                            onChange={(e) => setDatosEdicion({...datosEdicion, contenido: e.target.value})}
+                        />
+                    </div>
+
+                    {/* botones de acciones */}
+                    <div className="flex justify-between items-center mt-4 pt-4 border-t border-bordes/50">
+                        
+                        {/* Botón de Eliminar  */}
+                        <button 
+                            type="button"
+                            onClick={() => setConfirmarBorrado(true)}
+                            className="px-4 py-2 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-fondo font-bold tracking-widest"
+                        >
+                            ELIMINAR
+                        </button>
+
+                        <div className="flex gap-4">
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    setModalEdicion({ abierto: false, mensajeId: null });
+                                    setDatosEdicion({ contenido: '', fecha_envio: '' });
+                                }}
+                                className="px-6 py-2 border-2 border-bordes text-bordes hover:text-texto hover:border-texto font-bold tracking-widest"
+                            >
+                                CANCELAR
+                            </button>
+                            <button 
+                                type="submit"
+                                disabled={enviandoEdicion}
+                                className="px-6 py-2 border-2 border-azul-turquesa text-azul-turquesa hover:bg-azul-turquesa hover:text-fondo font-bold tracking-widest transition-colors disabled:opacity-50"
+                            >
+                                {enviandoEdicion ? 'EJECUTANDO...' : 'GUARDAR_CAMBIOS'}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )}
 
     {/* TÍTULO */}
     <h2 className="text-3xl text-texto font-black  tracking-widest border-b-4 border-texto pb-4 ]">
@@ -547,8 +658,7 @@ export default function ProgramadorAvisos(){
                                 return (
                                     <div 
                                         key={mensaje.id} 
-                                        // TODO_ aqui abriremos el modal
-                                        onClick={() => console.log("Abrir modal para el mensaje ID:", mensaje.id)}
+                                        onClick={() => abrirModalEdicion(mensaje)}
                                         className="flex flex-col border-2 border-bordes bg-fondo p-4 gap-3 group hover:border-azul-turquesa cursor-pointer mb-2"
                                     >
                                         
