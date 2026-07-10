@@ -72,7 +72,7 @@ class EditarMensajeProgRequest(BaseModel):
     contenido: str
     fecha_envio: datetime
 
-# 
+
 def registrar_log(db: Session, mensaje: str):
     """
     Función auxiliar para insertar un lod automáticamente en la bd, la fecha y hora se genetan automáticamente.
@@ -196,6 +196,8 @@ async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends
 
         db.commit()
         db.refresh(nueva_sala_db) 
+
+        registrar_log(db, f"Sincronización exitosa: Asignatura '{nombre_asignatura}' vinculada con Matrix.")
         
     except Exception as e:
         db.rollback() 
@@ -344,6 +346,8 @@ async def crear_sala(asignatura_id: str, datos: CrearNodoRequest, db: Session = 
     else:
         raise HTTPException(status_code=404, detail="ERROR: No se encontró el espacio raíz de la asignatura para añadir los cambios a la bd.")
         
+    registrar_log(db, f"Estructura modificada: Creado nuevo nodo tipo '{datos.tipo}' con nombre '{datos.nombre}'.")
+
     return {
         "status": "success",
         "room_id": nuevo_room_id,
@@ -367,6 +371,23 @@ async def modificar_sala(asignatura_id: str, room_id: str, datos: EditarNodoRequ
     if sala_bd.tipo != TipoSala.espacio and datos.tipo == TipoSala.espacio.value:
         raise HTTPException(status_code=400, detail="No se puede transformar una sala en un espacio.")
     
+    # Detectamos que ha cambiado antes de actualizar la bd
+    nombre_anterior = sala_bd.alias_principal
+    cambios = []
+
+    if sala_bd.alias_principal != datos.nombre:
+        cambios.append(f"Nombre ('{sala_bd.alias_principal}' -> '{datos.nombre}')")
+    
+    if sala_bd.descripcion != datos.descripcion:
+        cambios.append("Descripción modificada")
+        
+    if sala_bd.tipo.value != datos.tipo:
+        cambios.append(f"Tipo ('{sala_bd.tipo.value}' -> '{datos.tipo}')")
+
+    # Si no hay cambios, no hacemos peticiones innecesarias
+    if not cambios:
+        return {"status": "success", "mensaje": "Sin cambios detectados."}
+    
     # Ejecutamos los cambios en matrix
     profesor_id = PROFESOR["matrix_id"]
     res_matrix = await editar_nodo(room_id, datos.nombre, datos.descripcion, datos.tipo, profesor_id)
@@ -384,6 +405,10 @@ async def modificar_sala(asignatura_id: str, room_id: str, datos: EditarNodoRequ
         sala_bd.tipo = TipoSala.sala_avisos
 
     db.commit()
+
+    texto_cambios = ", ".join(cambios)
+    registrar_log(db, f"Estructura modificada: Nodo '{nombre_anterior}' actualizado. Cambios: [{texto_cambios}].")
+
 
     return {"status": "success"}
 
@@ -409,6 +434,8 @@ async def borrar_sala(asignatura_id: str, room_id: str, db: Session = Depends(ge
     # Lo borramos tambien de la bd
     db.delete(sala_bd)
     db.commit()
+
+    registrar_log(db, f"Estructura modificada: Nodo '{sala_bd.alias_principal}' eliminado permanentemente.")
 
     return {"status": "success"}
 
@@ -515,6 +542,8 @@ async def actualizar_cronograma(asignatura_id: str, room_id: str, datos: Actuali
     except Exception as e:
         print(f"ERROR: Error al aplicar el cambio de forma instantánea: {str(e)}")    
 
+    registrar_log(db, f"Cronograma modificado: Actualizado horarios de accesos para la sala '{sala_db.alias_principal}'.")
+
     return {"status": "success"}
 
 # ==========================================
@@ -576,6 +605,9 @@ async def crear_mensaje_programado(datos: CrearMensajeProgRequest, db: Session =
     db.add(nuevo_mensaje)
     db.commit()
 
+    fecha_formateada = datos.fecha_envio.strftime('%d/%m/%Y %H:%M')
+    registrar_log(db, f"Mensajes modificados: Creado nuevo mensaje programado en '{sala_existe.alias_principal}' para el {fecha_formateada}.")
+
     return {"status": "success"}
 
 @router.put("/prado/mensajes/{mensaje_id}")
@@ -592,10 +624,28 @@ async def modificar_mensaje_programado(mensaje_id: int, datos: EditarMensajeProg
     if not mensaje_db:
         raise HTTPException(status_code=404, detail="El mensaje seleccionado para modificar no existe o no está marcado como pendiente.")
     
+    # Detectamos que ha cambiado
+    cambios = []
+    if mensaje_db.contenido != datos.contenido:
+        cambios.append("Mensaje modificado")
+
+    if mensaje_db.fecha_envio.timestamp() != datos.fecha_envio.timestamp():
+        cambios.append(
+            f"Nueva fecha de envío: {datos.fecha_envio.strftime('%d/%m/%Y %H:%M')}"
+        )
+
+    # Si no ha habido cambios no ejecutamos las operaciones
+    if not cambios:
+        return {"status": "success", "mensaje": "Sin cambios detectados."}
+
+
     # Aplicamos las modificaciones
     mensaje_db.contenido = datos.contenido
     mensaje_db.fecha_envio = datos.fecha_envio
     db.commit()
+
+    texto_cambios = ", ".join(cambios)
+    registrar_log(db, f"Mensajes modificados: Mensaje programado con ID #{mensaje_id} actualizado. Cambios: [{texto_cambios}].")
 
     return {"status": "success"}
 
@@ -612,6 +662,8 @@ async def eliminar_mensaje_programado(mensaje_id: int, db: Session = Depends(get
     
     db.delete(mensaje_db)
     db.commit()
+
+    registrar_log(db, f"Mensajes modificados: Mensaje programado con ID #{mensaje_id} eliminado.")
 
     return {"status": "success"}
 
