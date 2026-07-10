@@ -667,5 +667,30 @@ async def eliminar_mensaje_programado(mensaje_id: int, db: Session = Depends(get
 
     return {"status": "success"}
 
+# ==========================================
+# RUTAS DE LOGS
+# ==========================================
+
+@router.get("/sistema/logs")
+async def get_logs(db: Session = Depends(get_db)):
+    """
+    Devuelve todos lod logs de acciones de nuestra bd.
+    """
+    # MOstramos primero los recientes
+    logs_db = db.query(LogSistema).order_by(LogSistema.id.desc()).all()
+    
+    logs = []
+    for log in logs_db:
+        logs.append({
+            "id": log.id,
+            "contenido": log.contenido,
+            "fecha": log.fecha.strftime('%d/%m/%Y %H:%M:%S')
+        })
+
+    return {
+        "status": "success",
+        "logs": logs
+    }
+
 
 
