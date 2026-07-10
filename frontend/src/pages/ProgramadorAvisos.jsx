@@ -21,17 +21,23 @@ export default function ProgramadorAvisos(){
     const [cargando, setCargando] = useState(true); // Para bloquear la interfaz inicial mientras cargamos desde el servidor pa pagina entera
     const [direccion, setDireccion] = useState(null); // Para saber si a animación del carrusel superior es hacia la izq o la der
 
-    // ---DATOS DEL FORMULARIO
+    // ---DATOS DEL FORMULARIO DE INSERCIÓN---
     const [salaSeleccionada, setSalaSeleccionada] = useState("");
     const [contenido, setContenido] = useState("");
     const [fechaEnvio, setFechaEnvio] = useState("");
 
-    // --DATOS COLA DE MENSAJES--
+    // ---DATOS MODAL DE EDICION Y BORRADO---
+    const [modalEdicion, setModalEdicion] = useState({ abierto: false, mensajeId: null });
+    const [datosEdicion, setDatosEdicion] = useState({contenido: '', fecha_envio: ''});
+    const [enviandoEdicion, setEnviandoEdicion] = useState(false);
+    const [confirmarBorrado, setConfirmarBorrado] = useState(false);
+
+    // ---DATOS COLA DE MENSAJES---
     const [colaMensajes, setColaMensajes] = useState([]);
     const [cargandoCola, setCargandoCola] = useState(false);
     const [cargandoSalas, setCargandoSalas] = useState(false);
 
-    // --DATOS CALCULO HORA--
+    // ---DATOS CALCULO HORA---
     const [horaActual, setHoraActual] = useState(new Date());
 
     // --VARIABLES PARA NAVEGACION Y CARGA--
@@ -118,7 +124,6 @@ export default function ProgramadorAvisos(){
     }, []);
 
     // --- NAVEGACIÓN CARRUSEL ---
-
     const cambiarAsignatura = (nuevoIndex, direccionAnimacion) => {
         setDireccion(direccionAnimacion);
         setActivaIndex(nuevoIndex);
@@ -129,6 +134,7 @@ export default function ProgramadorAvisos(){
         if (nuevaAsig && nuevaAsig.sincronizada) {
             cargarSalasAsignatura(nuevaAsig.id);
         }
+        
     };
 
     const irAnterior = () => {
@@ -141,8 +147,69 @@ export default function ProgramadorAvisos(){
         cambiarAsignatura(nuevoIndex, 'der');
     };
 
-    // --- FUNCIONES LÓGICA PRINCIPAL ---
+    // --- PARA LOS MODALES DE EDICION Y BORRADO ---
+    
+    //Abre el modal de edición y adapta el formato de la fecha del back al establecido en el front
+    const abrirModalEdicion = (mensaje) => {
+        const fechaObj = new Date(mensaje.fecha_envio);
+        const anio = fechaObj.getFullYear();
+        const mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
+        const dia = String(fechaObj.getDate()).padStart(2, '0');
+        const horas = String(fechaObj.getHours()).padStart(2, '0');
+        const minutos = String(fechaObj.getMinutes()).padStart(2, '0');
 
+        setDatosEdicion({
+            contenido: mensaje.contenido,
+            fecha_envio: `${anio}-${mes}-${dia}T${horas}:${minutos}`
+        })
+        
+        setModalEdicion({ abierto: true, mensajeId: mensaje.id });
+    };
+
+    // Envia el resultado de el formulario al backend
+    const handleGuardarEdicion = async (e) => {
+        e.preventDefault();
+        setEnviandoEdicion(true);
+
+        try{
+
+           await fetchEditarMensajeProgramado(modalEdicion.mensajeId,{
+                contenido: datosEdicion.contenido,
+                fecha_envio: new Date(datosEdicion.fecha_envio).toISOString()
+            });
+
+            setModalEdicion({ abierto: false, mensajeId: null });
+            await cargarMensajes(); // Refrescamos la cola 
+
+        }catch(error){
+            console.error("Error al editar el mensaje:", error);
+        }finally{
+            setEnviandoEdicion(false)
+        }
+    }
+
+    // Elimina el mensaje programado 
+    const handleEjecutarBorrado = async() =>{
+        setEnviandoEdicion(true);
+
+        try {
+
+            await fetchEliminarMensajeProgramado(modalEdicion.mensajeId);
+
+            setConfirmarBorrado(false);
+            setModalEdicion({ abierto: false, mensajeId: null });
+
+            await cargarMensajes(); // Refrescamos la cola 
+
+        } catch (error){
+            console.error("Error al cancelar el mensaje:", error);
+        } finally{
+            setEnviandoEdicion(false);
+        }
+    }
+
+
+    // --- FUNCIONES LÓGICA PRINCIPAL ---
 
     // fución que se ejecuta para enviar los datos del formulario
     const handleCrearMensaje = async (e) =>{
