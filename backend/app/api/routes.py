@@ -11,8 +11,8 @@ from typing import List
 
 from app.models.sala_asignaturas import SalaAsignatura, TipoSala
 from app.models.mensajes_programados import MensajeProgramado, EstadoMensaje
-from app.models.usuarios import Usuario
 from app.models.cronogramas import Cronograma
+from app.models.logs import LogSistema
 
 # Para que los cambios temporales se ejecuten al momento
 from datetime import datetime
@@ -71,6 +71,16 @@ class CrearMensajeProgRequest(BaseModel):
 class EditarMensajeProgRequest(BaseModel):
     contenido: str
     fecha_envio: datetime
+
+# 
+def registrar_log(db: Session, mensaje: str):
+    """
+    Función auxiliar para insertar un lod automáticamente en la bd, la fecha y hora se genetan automáticamente.
+    """
+    nuevo_log = LogSistema(contenido=mensaje)
+
+    db.add(nuevo_log)
+    db.commit()
 
 router = APIRouter() # Lo que hace es crear un grupo de rutas. En el main tendremos que incluirlo "app.include_router(router)"
 
