@@ -76,7 +76,7 @@ export default function ProgramadorAvisos(){
         setCargandoCola(true);
         try{
             const data = await fetchGetMensajesProgramados();
-            setColaMensajes(data);
+            setColaMensajes(data.mensajes || []);
         }catch(error){
             console.error("Error leyendo cola de salida: ", error);
         }finally{
@@ -178,6 +178,18 @@ export default function ProgramadorAvisos(){
         if (ahora <= inicio) return 0;
 
         return ((ahora - inicio) / (fin - inicio)) * 100;
+    };
+
+    // Genera la cadena de texto de tiempo actual para que no se pueda poner un tiempo anterior a este
+    const obtenerFechaMinima = () => {
+        const ahora = new Date();
+        const anio = ahora.getFullYear();
+        const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+        const dia = String(ahora.getDate()).padStart(2, '0');
+        const horas = String(ahora.getHours()).padStart(2, '0');
+        const minutos = String(ahora.getMinutes()).padStart(2, '0');
+        
+        return `${anio}-${mes}-${dia}T${horas}:${minutos}`;
     };
 
     // Para cuando este cargando la pestaña
@@ -391,6 +403,7 @@ export default function ProgramadorAvisos(){
                                 <input 
                                     type="datetime-local" 
                                     value={fechaEnvio}
+                                    min={obtenerFechaMinima()}
                                     onChange={(e) => setFechaEnvio(e.target.value)}
                                     className="bg-paneles border-2 border-bordes p-3 text-texto outline-none focus:border-azul-turquesa cursor-text [color-scheme:dark]"
                                 />
@@ -438,9 +451,92 @@ export default function ProgramadorAvisos(){
                     </div>
                 </div>
                 {/* Columna derecha, formulario (50%)*/}
-                <div className="lg:col-span-5 flex flex-col gap-6 border-2 border-bordes bg-paneles p-6">
+                <div className="lg:col-span-5 flex flex-col gap-6 border-4 border-texto bg-paneles/40 p-6">
+                    <h3 className="text-xl text-texto font-black tracking-widest border-b-2 border-bordes/50 pb-4 ">
+                        [ TUS_MENSAJES_PROGRAMADOS ]
+                    </h3>
 
+                    {/* Contenedor para la lista de mensajes con scroll vertical*/}
+                    <div className="flex flex-col gap-1 h-120 overflow-y-auto pr-2 scrollbar-thin select-none">
 
+                        {cargandoCola ? (
+                            // Pantalla de carga
+
+                            <div className="flex-1 flex items-center justify-center text-texto animate-pulse tracking-widest font-bold">
+                                [ LEYENDO_POSTGRESQL... ]
+                            </div>
+                        ) : colaMensajes.length === 0 ? (
+                            //Si no hubiese mensajes programados
+
+                            <div className="flex-1 flex items-center justify-center text-texto animate-pulse tracking-widest font-bold">
+                                [ NO_HAY_MENSAJES_PENDIENTES ]
+                            </div>
+                        ) : (
+
+                            /* Mapeo de la cola de mensajes  */
+                            colaMensajes.map((mensaje) => {
+                                const porcentaje = obtenerPorcentajeCarga(mensaje.fecha_creacion, mensaje.fecha_envio);
+                                
+                                return (
+                                    <div 
+                                        key={mensaje.id} 
+                                        // TODO_ aqui abriremos el modal
+                                        onClick={() => console.log("Abrir modal para el mensaje ID:", mensaje.id)}
+                                        className="flex flex-col border-2 border-bordes bg-fondo p-4 gap-3 group hover:border-azul-turquesa cursor-pointer mb-2"
+                                    >
+                                        
+                                        {/* Cabecera de la tarjeta */}
+                                        <div className="flex justify-between border-b border-bordes pb-2">
+
+                                            <div className="flex flex-col">
+                                                <span className="text-sm text-azul-turquesa font-bold tracking-widest">
+                                                    Mensaje_para: {mensaje.nombre_sala}
+                                                </span>
+                                                <span className="text-[10px] text-bordes font-mono mt-1">
+                                                    TIPO: {mensaje.tipo_sala}
+                                                </span>
+                                            </div>
+
+                                            <div className="text-right flex flex-col items-end">
+                                                <span className="text-xs text-texto bg-paneles border border-bordes px-2 py-1 font-bold">
+                                                    ENVIO: {new Date(mensaje.fecha_envio).toLocaleString('es-ES', { 
+                                                        day: '2-digit', month: '2-digit', year: '2-digit', 
+                                                        hour: '2-digit', minute:'2-digit' 
+                                                    })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Cuerpo del mensaje */}
+                                        <div className="text-sm text-bordes font-mono line-clamp-2 italic">
+                                            "{mensaje.contenido}"
+                                        </div>
+                                        
+                                        {/* Barra de progreso */}
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <span className="text-[10px] text-azul-turquesa tracking-widest font-bold">
+                                                STATUS
+                                            </span>
+                                            
+                                            {/* Contenedor del progreso */}
+                                            <div className="flex-1 h-2 bg-paneles border border-bordes/50 relative overflow-hidden">
+                                                <div 
+                                                    className="absolute top-0 left-0 h-full bg-azul-turquesa transition-all duration-1000 ease-linear shadow-[0_0_10px_rgba(6,182,212,0.7)]"
+                                                    style={{ width: `${porcentaje}%` }}
+                                                ></div>
+                                            </div>
+                                            
+                                            {/* Indicador numérico */}
+                                            <span className="text-[10px] text-azul-turquesa font-black w-8 text-right">
+                                                {Math.round(porcentaje)}%
+                                            </span>
+                                        </div>
+
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
                 </div>
             </div>
         )}
