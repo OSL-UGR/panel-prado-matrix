@@ -676,11 +676,18 @@ async def enviar_mensaje_bot(room_id: str, texto: str):
     """
     Envía un mensaje utilizando el bot en una sala seleccionada.
     """
+    # Construimos el texto en formato html
+    cuerpo_texto = f"**[MENSAJE PROGRAMADO]**\n\n{texto}"
+
+    texto_html = texto.replace('\n', '<br>')
+    cuerpo_html = f"<strong>[MENSAJE PROGRAMADO]</strong><br><br>{texto_html}"
 
     headers = {"Authorization": f"Bearer {settings.MATRIX_BOT_TOKEN}"}
     payload = {
         "msgtype": "m.text",
-        "body": texto
+        "body": cuerpo_texto,
+        "format": "org.matrix.custom.html",
+        "formatted_body": cuerpo_html
     }
 
     async with httpx.AsyncClient() as client:

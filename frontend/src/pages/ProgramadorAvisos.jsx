@@ -379,7 +379,7 @@ export default function ProgramadorAvisos(){
                                 >
                                     {salas.map((sala) => (
                                         <option key={sala.id} value={sala.id}>
-                                            {sala.nombre} ({sala.tipo === 'sala_avisos' ? 'Lectura' : 'Chat'})
+                                            {sala.nombre} ({sala.tipo === 'sala_avisos' ? 'Solo lectura' : 'Chat normal'})
                                         </option>
                                     ))}
                                 </select>
