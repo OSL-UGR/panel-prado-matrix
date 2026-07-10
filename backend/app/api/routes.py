@@ -10,6 +10,7 @@ from pydantic import BaseModel # Para definir models de cara a los cuestionarios
 from typing import List
 
 from app.models.sala_asignaturas import SalaAsignatura, TipoSala
+from app.models.usuarios import Usuario
 from app.models.mensajes_programados import MensajeProgramado, EstadoMensaje
 from app.models.cronogramas import Cronograma
 from app.models.logs import LogSistema
@@ -676,7 +677,7 @@ async def get_logs(db: Session = Depends(get_db)):
     """
     Devuelve todos lod logs de acciones de nuestra bd.
     """
-    # MOstramos primero los recientes
+    # Mostramos primero los mas recientes
     logs_db = db.query(LogSistema).order_by(LogSistema.id.desc()).all()
     
     logs = []
