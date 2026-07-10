@@ -334,3 +334,21 @@ export const fetchEliminarMensajeProgramado = async (mensajeId) => {
         throw error;
     }
 };
+
+/**
+ * LOGS: Obtiene el registro de logs del sistema (GET)
+ */
+export const fetchGetLogsSistema = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/sistema/logs`);        
+        
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || `Error en la petición: ${response.status}`);
+        }
+        return await response.json(); 
+    } catch (error) {
+        console.error("Error al obtener los logs de auditoría:", error);
+        throw error;
+    }
+};
