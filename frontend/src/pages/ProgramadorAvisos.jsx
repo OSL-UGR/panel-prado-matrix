@@ -552,7 +552,7 @@ export default function ProgramadorAvisos(){
                             LA ASIGNATURA NO CONTIENE NINGUNA SALA OPERATIVA. <br />
                         </h2>
                         <p className="text-sm text-bordes max-w-xl">
-                            Crea salas desde el [ GESTOR DE SALAS ] para poder automatizar sus horarios de acceso.
+                            Crea salas desde el [ GESTOR DE SALAS ] para poder programar mensajes programados en estas.
                         </p>
                     </div>
 
