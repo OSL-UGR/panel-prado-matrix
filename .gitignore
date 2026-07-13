@@ -45,3 +45,6 @@ Thumbs.db
 
 # Archivos de configuración del vscode 
 .vscode/
+
+# Archivos de configuracion del obsidian
+.obsidian/
