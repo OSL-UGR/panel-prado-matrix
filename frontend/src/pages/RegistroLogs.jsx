@@ -43,7 +43,7 @@ export default function RegistroLogs() {
             </h2>
 
             {/* CONTENEDOR PRINCIPAL ESTILO TERMINAL */}
-            <div className="relative border-4 border-texto bg-fondo p-6 flex flex-col gap-4 h-180 overflow-hidden">
+            <div className="relative border-4 border-texto bg-fondo p-6 flex flex-col gap-4 h-175 overflow-hidden">
                 
                 {/* Imagen de fondo*/}
                 <div className="absolute inset-0 opacity-30 pointer-events-none select-none">
