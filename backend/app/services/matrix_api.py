@@ -5,7 +5,6 @@
 
 import httpx # Para peticiones GET, POST, PUT etc
 import secrets
-import asyncio
 from sqlalchemy.orm import Session
 from app.models.sala_asignaturas import SalaAsignatura, TipoSala # Así podremos hacer db.query(SalaAsignatura)
 from app.models.cronogramas import Cronograma

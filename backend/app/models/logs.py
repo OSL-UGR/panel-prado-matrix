@@ -1,6 +1,10 @@
 from sqlalchemy import Column, Integer, String, DateTime
-from datetime import datetime, timezone
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from app.core.database import Base
+
+ZONA_HORARIA = ZoneInfo("Europe/Madrid")
+
 
 class LogSistema(Base):
     __tablename__ = "logs_sistema"
@@ -12,5 +16,5 @@ class LogSistema(Base):
     fecha = Column(
         DateTime,
         nullable=False,
-        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+        default=lambda: datetime.now(ZONA_HORARIA).replace(tzinfo=None)
     )
