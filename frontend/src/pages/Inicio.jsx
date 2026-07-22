@@ -36,10 +36,10 @@ export default function Inicio() {
     
     try{
 
-      // Si la operación tarda < de 2 segundos, forzamos la animacion para mejorar la UX
+      //Si la operación tarda < de 2 segundos, forzamos la animacion para mejorar la UX
       const esperaMinima = new Promise(resolve => setTimeout(resolve, 2000));
       
-      // El promise terminará cuando la más lenta de los dos termine
+      //El promise terminará cuando la más lenta de los dos termine
       const [res] = await Promise.all([
         fetchSincronizarAsignatura(idAsignatura),
         esperaMinima
@@ -266,7 +266,7 @@ export default function Inicio() {
                   {isSincronizada ? (
                     //Si está sincronizada, mostramos el botón clickeable hacia Matrix
                     <a 
-                      href={`https://matrix.ugr.es/#/room/${asig.room_id}`} 
+                      href={`https://chat.ugr.es/#/room/${asig.room_id}`} 
                       target="_blank" 
                       className="border p-3 flex flex-col items-end w-full md:w-48 border-green-500 bg-green-500/10 hover:bg-green-500/20 transition-colors cursor-pointer group"
                     >
