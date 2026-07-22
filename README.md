@@ -158,6 +158,8 @@ MATRIX_BOT_TOKEN=
 MATRIX_BOT_ID=
 ```
 
+>  **Nota importante:** Si en algún momento como en este punto modificamos o añadimos variables de entorno es necesario relanzar todos los contenedores del proyecto con "sudo docker compose up -d --build" después de cerrarlos con "sudo docker compose down -v"
+
 ### 4.6 Arrancamos el servicio de docker
 
 Si es la primera vez que lanzamos Docker en nuestra máquina nos tenemos que asegurr que el servicio este activo:
