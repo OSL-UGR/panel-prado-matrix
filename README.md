@@ -6,9 +6,9 @@ Al unir estas dos herramientas, facilitamos funcionalidades al docente para crea
 
 > **Nota técnica:** En esta fase de prototipo no hay ningún contenedor Moodle desplegado en el docker, la comunicación con Prado a través de un sistema de Mocks/JSON que simula esta API.
 
-![Imagen1](../imgs/imagen1.png)
+![Imagen1](docs/imgs/imagen1.png)
 
-![Imagen4](../imgs/imagen4.png)
+![Imagen4](docs/imgs/imagen4.png)
 
 
 ---
