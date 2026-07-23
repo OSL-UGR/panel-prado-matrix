@@ -6,6 +6,9 @@ Al unir estas dos herramientas, facilitamos funcionalidades al docente para crea
 
 > **Nota técnica:** En esta fase de prototipo no hay ningún contenedor Moodle desplegado en el docker, la comunicación con Prado a través de un sistema de Mocks/JSON que simula esta API.
 
+<img src="docs/imgs/imagen1.png" width="48%"> <img src="docs/imgs/imagen2.png" width="48%">
+
+
 ---
 
 ## 1. Características Principales
@@ -191,6 +194,9 @@ sudo fuser -k 5173/tcp
 
 - **Interfaz de Usuario (Frontend):** [http://localhost:5173/](http://localhost:5173/)
 - **Documentación Interactiva de la API (Backend):** [http://localhost:8000/docs#/](http://localhost:8000/docs#/)
+
+---
+
 ## 5. Resolución de Problemas 
 
 >A continuación se definen una serie de errores comunes durante el despliegue que se han detectado que pueden ocurrir y el como solucionarlos(Están redactados con IA, quedaban más bonitos xd):
