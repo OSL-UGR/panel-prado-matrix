@@ -22,7 +22,6 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-    # Solo leemos el .env, cero contraseñas en el código
     env_file:
       - .env
     depends_on:

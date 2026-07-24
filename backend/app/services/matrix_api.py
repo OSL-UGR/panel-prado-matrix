@@ -44,7 +44,6 @@ async def obtener_info_sala(db: Session, room_id: str): # Aync para que no se bl
         "miembros_matrix": datos_matrix.get("joined", {}) # Devolvemos el listado de los miembros obtenidos a través de la API
     }
 
-
 async def obtener_perfil_usuario(user_id:str):
 
     headers = {"Authorization": f"Bearer {settings.MATRIX_TOKEN}"}
