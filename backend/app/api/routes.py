@@ -91,10 +91,16 @@ router = APIRouter() # Lo que hace es crear un grupo de rutas. En el main tendre
 
 @router.get("/matrix/salas/{room_id}")
 async def endpoint_info_sala(room_id: str, db: Session = Depends(get_db)):
+    """
+    Recibe el ID de una sala en matrix. Consulta directamente a la API de Synapse para devolver la información de la sala como su nombre, tipo, listado de miembros etc.
+    """
     return await obtener_info_sala(db, room_id)
 
 @router.get("/matrix/usuarios/{user_id}/perfil")
 async def get_perfil(user_id: str):
+    """
+    Recibe el ID de un usuario en Matrix. Se comunica con el servidor de Matrix para devolver le nombre del usuario.    
+    """
     # TODO: cambiar el id hardcodeado por el id del usuario de la sesión de Prado
     if user_id == "me":
         user_id = PROFESOR["matrix_id"]
@@ -108,10 +114,16 @@ async def get_perfil(user_id: str):
 
 @router.get("/prado/asignaturas/{asignatura_id}/alumnos")
 async def get_alumnos(asignatura_id: str):
+    """
+    - Recibe el ID de una asignatura de Prado. Consulta el simulador de datos de Moodle/Prado para listar y devolver a todos los estudiantes matriculados de la asignatura.    
+    """
     return await obtener_alumnos_prado_service(asignatura_id)
 
 @router.get("/prado/usuarios/{user_id}/asignaturas")
 async def get_asignaturas(user_id: str, db: Session = Depends(get_db)):
+    """
+    Recibe el ID de un profesor de Prado. Consulta el simulador de prado para devolver todas las asignaturas que imparte ese profesor.
+    """
 
     # TODO: cambiar el id hardcodeado por el id del usuario de la sesión de Prado
     if user_id == "me":
@@ -121,7 +133,9 @@ async def get_asignaturas(user_id: str, db: Session = Depends(get_db)):
 
 @router.post("/prado/asignaturas/{asignatura_id}/sincronizar")
 async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends(get_db)):
-
+    """
+    Recibe el ID de una asignatura de Prado. Se encarga de todo el proceso de sincronizar una asignatura de Prado con un espacio de Matrix. Crea el espacio con el profesor como administrador e inyecta a los alumnos como usuarios normales.
+    """
     # 1º Obtenemos toda la información de la asignatura, id, nombre y sus usuarios matriculados
     info_asignatura = await obtener_alumnos_prado_service(asignatura_id)
 
@@ -219,7 +233,7 @@ async def sincronizar_asignatura_matrix(asignatura_id:str, db: Session = Depends
 @router.get("/prado/asignaturas/{asignatura_id}/salas")
 async def get_salas_asignatura(asignatura_id : str, db: Session = Depends(get_db)):
     """
-    Devuelve todas las salas y espacios de una asignatura a partir de su id
+    Recibe el ID de una asignatura de Prado. Se encarga de leer nuestra base de datos PostgreSQL  y devuelve toda la jerarquía de salas asignada a una asignatura (pertenecientes a su espacio de Matrix).    
     """
 
     espacio_raiz = db.query(SalaAsignatura).filter(SalaAsignatura.id_asignatura_prado == asignatura_id,SalaAsignatura.id_padre == None).first()
@@ -259,8 +273,7 @@ async def get_salas_asignatura(asignatura_id : str, db: Session = Depends(get_db
 @router.post("/prado/asignaturas/{asignatura_id}/salas")
 async def crear_sala(asignatura_id: str, datos: CrearNodoRequest, db: Session = Depends(get_db)):
     """
-    Recibe los datos del cuestionario del front, crea el nodo especificado en Matrix, 
-    lo vincula a su nodo padre y lo matricula a los alumnos si se solicita.
+    Recibe el ID de una asignatura de Prado.  Recibe los datos del cuestionario del front (nombre, descripción, tipo, id_padre,  autoañadir). Crea la nueva sala en Matrix, auto-matricula a los alumnos si se ha marcado la casilla y registra el nuevo nodo en la jerarquía de salas.    
     """
 
     profesor_id = PROFESOR["matrix_id"]
@@ -358,7 +371,9 @@ async def crear_sala(asignatura_id: str, datos: CrearNodoRequest, db: Session = 
 
 @router.put("/prado/asignaturas/{asignatura_id}/salas/{room_id}")
 async def modificar_sala(asignatura_id: str, room_id: str, datos: EditarNodoRequest, db: Session = Depends(get_db)):
-
+    """
+    Recibe el ID de una asignatura en Prado y el ID de una sala en Matrix. Aplica los cambios de nombre, descripción y tipo de sala obtenidos del formulario de edición para editar los parámetros de una sala.    
+    """
     # Obtenemos la sala de la bd
     sala_bd = db.query(SalaAsignatura).filter(SalaAsignatura.id_matrix_sala == room_id, SalaAsignatura.id_asignatura_prado == asignatura_id).first()
 
@@ -415,6 +430,9 @@ async def modificar_sala(asignatura_id: str, room_id: str, datos: EditarNodoRequ
 
 @router.delete("/prado/asignaturas/{asignatura_id}/salas/{room_id}")
 async def borrar_sala(asignatura_id: str, room_id: str, db: Session = Depends(get_db)):
+    """
+    Recibe el ID de una asignatura en Prado y el ID de una sala en Matrix. Se encarga de eliminar una sala de la jerarquía de salas de una asignatura.
+    """
 
     #Obtenemos la sala de la bd 
     sala_bd = db.query(SalaAsignatura).filter(SalaAsignatura.id_matrix_sala == room_id, SalaAsignatura.id_asignatura_prado == asignatura_id).first()
@@ -441,13 +459,15 @@ async def borrar_sala(asignatura_id: str, room_id: str, db: Session = Depends(ge
     return {"status": "success"}
 
 
-    
 # ==========================================
 # RUTAS DE LA PESTAÑA DE INICIO PERSONALIZADAS
 # ==========================================
 
 @router.get("/inicio/estadisticas")
 async def get_inicio_estadisticas(db: Session = Depends(get_db)):
+    """
+    No recibe parámetros de entrada, Devuelve contadores de estadísticas como el total de alumnos, asignaturas y salas extraídos de Prado y de la bd local.
+    """
     user_id = PROFESOR["matrix_id"]
 
     # 1. PRADO
@@ -469,7 +489,6 @@ async def get_inicio_estadisticas(db: Session = Depends(get_db)):
         }
     }
 
-
 # ==========================================
 # RUTAS DE LA BASE DE DATOS DE CRONOGRAMA
 # ==========================================
@@ -477,7 +496,7 @@ async def get_inicio_estadisticas(db: Session = Depends(get_db)):
 @router.get("/prado/asignaturas/{asignatura_id}/salas/{room_id}/cronograma")
 async def get_cronograma(asignatura_id: str, room_id: str, db: Session = Depends(get_db)):
     """
-    Devuelve la matriz 7x24 del cronograma de una sala específica.
+     Recibe el ID de una asignatura en Prado y el ID de una sala en Matrix. Se encarga de consultar la base de datos y devolver la matriz de horarios actual para que el front pueda mostrarla.
     """
 
     # Verifiamos que la sala existe y pertenece a esa asignatura en la bd
@@ -503,7 +522,7 @@ async def get_cronograma(asignatura_id: str, room_id: str, db: Session = Depends
 @router.put("/prado/asignaturas/{asignatura_id}/salas/{room_id}/cronograma")
 async def actualizar_cronograma(asignatura_id: str, room_id: str, datos: ActualizarCronogramaRequest, db: Session = Depends(get_db)):
     """
-    Recibe una matriz 7x24 y con esta ser sobreescribe la actual del cronograma.
+    Recibe el ID de una asignatura en Prado y el ID de una sala en Matrix. Se encarga de sobrescribir con una nueva matriz de horarios la actual de la base de datos, enviando peticiones al Matrix para abrir o cerrar la sala seleccionada.
     """
 
     # Verifiamos que la sala existe y pertenece a esa asignatura en la bd
@@ -554,7 +573,7 @@ async def actualizar_cronograma(asignatura_id: str, room_id: str, datos: Actuali
 @router.get("/prado/mensajes")
 async def get_mensajes_pendientes(db: Session = Depends(get_db)):    
     """
-    Devuelve todos los mensajes programados en estado de pendientes ordenador del más inminente al más lejano.
+    No recibe parámetros de entrada. Se encarga de obtener los mensajes programados en estado de "pendiente" de la base de datos ordenados del más cercano al más lejano.
     """
 
     # Consultamos todos los mensajes
@@ -586,7 +605,7 @@ async def get_mensajes_pendientes(db: Session = Depends(get_db)):
 @router.post("/prado/mensajes")
 async def crear_mensaje_programado(datos: CrearMensajeProgRequest, db: Session = Depends(get_db)):
     """
-    Registra un nuevo mensaje programado en la bd a partir de la informacióon recogida del formulario
+     No recibe parámetros de entrada. Se encarga de insertar un mensaje programado a través del formulario con la ID de la sala destino, la fecha de envío y el contenido. Guarda este mensaje en la base de datos PorstgreSQL a la espera de que el cron lo detecte y lo envíe cuando llegue el momento.
     """
 
     # Verificamos que la sala destino exista en la  base de datos
@@ -614,7 +633,7 @@ async def crear_mensaje_programado(datos: CrearMensajeProgRequest, db: Session =
 @router.put("/prado/mensajes/{mensaje_id}")
 async def modificar_mensaje_programado(mensaje_id: int, datos: EditarMensajeProgRequest, db: Session = Depends(get_db)):
     """
-    Permite modificar el mensaje o reprogramar la hora de un mensaje en estado pendiente
+    Recibe el ID de un mensaje mensaje programado. A través del formulario de edición de mensajes actualiza su texto, fecha o hora en la base de datos local.
     """
 
     mensaje_db = db.query(MensajeProgramado).filter(
@@ -653,7 +672,7 @@ async def modificar_mensaje_programado(mensaje_id: int, datos: EditarMensajeProg
 @router.delete("/prado/mensajes/{mensaje_id}")
 async def eliminar_mensaje_programado(mensaje_id: int, db: Session = Depends(get_db)):
     """
-    Elimina un mensaje programado de la base de datos.
+    Recibe el ID de un mensaje mensaje programado. A través del formulario de edición de mensajes actualiza su texto, fecha o hora en la base de datos local.
     """
 
     mensaje_db = db.query(MensajeProgramado).filter(MensajeProgramado.id == mensaje_id).first()
@@ -675,7 +694,7 @@ async def eliminar_mensaje_programado(mensaje_id: int, db: Session = Depends(get
 @router.get("/sistema/logs")
 async def get_logs(db: Session = Depends(get_db)):
     """
-    Devuelve todos lod logs de acciones de nuestra bd.
+    No recibe parámetros de entrada. Se encarga de consultar la tabla de logs de la base de datos, para devolver el historial completo de acciones del sistema ordenado cronológicamente.
     """
     # Mostramos primero los mas recientes
     logs_db = db.query(LogSistema).order_by(LogSistema.id.desc()).all()
